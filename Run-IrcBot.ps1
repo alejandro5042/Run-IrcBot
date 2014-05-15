@@ -8,30 +8,29 @@ param
     [string]
     $Server,
     
-    [int]
-    $Port = 6667,
-    
     [string]
-    $UserName,
+    $Channel,
     
-    $State = $null
+    $State
 )
 
-filter Send-Line($str)
+filter Out-Irc ($writer)
 {
-    $str = [string]$str
+    $str = [string]$_
     
     if ($str.StartsWith('/'))
     {
         $str = $str.Substring(1)
     }
     
-    Write-Verbose "<< $str"
-    $script:writer.WriteLine($str)
-    $script:writer.Flush()
+    $str -split '\n' | foreach {    
+        Write-Verbose "<< $_"
+        $writer.WriteLine($_)
+    }
+    $writer.Flush()
 }
 
-function Parse-Command($sender, $command, $arguments)
+function Run-SubconsiousBot ($message, $command, $state)
 {
     switch ($command)
     {
@@ -40,10 +39,17 @@ function Parse-Command($sender, $command, $arguments)
             $newNick = $arguments[1] + "_"
             "/nick $newNick"
         }
+        "323"
+        {
+            "/quit haha"
+        }
         "376"
         {
-            Send-Line "/LIST"
-            #"/quit haha"
+            "/list"
+        }
+        "error"
+        {
+            throw $arguments[0]
         }
         default
         {
@@ -52,74 +58,98 @@ function Parse-Command($sender, $command, $arguments)
     }
 }
 
-function Run()
+function Parse-Command ($command, $state, $botScript)
 {
-    try
+    $message = ''
+    & $botScript $message $command $state | foreach { $outputted = $true; $_ }
+    if (!$outputted)
     {
-        $connection = New-Object Net.Sockets.TcpClient($Server, $Port)
-        $networkStream = $connection.GetStream()
-        $script:reader = New-Object IO.StreamReader($networkStream, [Text.Encoding]::ASCII)
-        $script:writer = New-Object IO.StreamWriter($networkStream, [Text.Encoding]::ASCII)
-        
-        $BotScript = (gi $BotScript)
-        $user = $BotScript.BaseName
-        
-        Send-Line "/nick $user"
-        Send-Line "/user $user localhost $Server ps-ircbot"
-        
-        $running = $true
-        while ($running)
-        {            
-            while ($running -and ($networkStream.DataAvailable -or $reader.Peek() -ne -1))
-            {
-                $line = $reader.ReadLine().Trim()
-                
-                if ($line -match "^(?::([^\s]*)\s+)?([^\s]+)(?:\s*(.*))?")
-                {
-                    Write-Verbose ">> $line"
-                    
-                    $sender = $Matches[1]
-                    $command = $Matches[2]
-                    $arguments = $Matches[3]
-                    
-                    $before, $after = $arguments -split " :"
-                    $before = $before -split " "
-                    $arguments = $before + $after
-                                        
-                    try
-                    {
-                        Parse-Command $sender $command $arguments | Send-Line
-                    }
-                    catch
-                    {
-                        if ($_.FullyQualifiedErrorId -eq "ScriptHalted")
-                        {
-                            $running = $false
-                        }
-                        else
-                        {
-                            Write-Error $_
-                        }
-                    }
-                }
-                else
-                {
-                    Write-Warning "Unknown line >> $line"
-                }
-            }
-            
-            sleep -Milliseconds 100
-            write-host "ping"
-        }
-    }
-    finally
-    {
-        if ($connection.Active)
-        {
-            $connection.Close()
-        }
-        $connection.Dispose()
+        Run-SubconsiousBot $message $command $state
     }
 }
 
-Run
+try
+{
+    $serverName, $port = $Server -split ":"
+    if (!$port)
+    {
+        $port = 6667
+    }
+    
+    $connection = New-Object Net.Sockets.TcpClient($serverName, $port)
+    $networkStream = $connection.GetStream()
+    $reader = New-Object IO.StreamReader($networkStream, [Text.Encoding]::ASCII)
+    $writer = New-Object IO.StreamWriter($networkStream, [Text.Encoding]::ASCII)
+    
+    if (!(Test-Path $BotScript))
+    {
+        $BotScript = $BotScript + '.ps1'
+    }
+    $BotScript = (gi $BotScript)
+    $user = $BotScript.BaseName
+    $BotScript = $BotScript.FullName
+    
+    "/nick $user" | Out-Irc $writer
+    "/user $user localhost $Server ps-ircbot" | Out-Irc $writer
+    
+    $running = $true
+    while ($running)
+    {
+        sleep -Milliseconds 100
+        
+        while ($running -and ($networkStream.DataAvailable -or $reader.Peek() -ne -1))
+        {
+            $line = $reader.ReadLine().Trim()
+            
+            if ($line -match "^(?::([^\s]*)\s+)?([^\s]+)(?:\s*(.*))?")
+            {
+                Write-Verbose ">> $line"
+                
+                $Command = [PSCustomObject]@{
+                    Sender = "";
+                    Type = ""
+                }
+                
+                $sender = $Matches[1]
+                $type = $Matches[2]
+                $arguments = $Matches[3]
+                
+                $Command.Type = $type
+                
+                $singleWordArguments, $rest = "dummy $arguments" -split " :"
+                $singleWordArguments = $singleWordArguments -split " "
+                $arguments = $singleWordArguments + $rest
+                $arguments = $arguments | select -skip 1 | foreach { $_.Trim() }
+                write-verbose ($arguments -join "|")
+                
+                try
+                {
+                    Parse-Command $type $State $BotScript | Out-Irc $writer
+                }
+                catch
+                {
+                    if ($_.FullyQualifiedErrorId -eq "ScriptHalted")
+                    {
+                        $running = $false
+                    }
+                    else
+                    {
+                        Write-Error $_
+                    }
+                }
+            }
+            else
+            {
+                Write-Warning "Unknown line >> $line"
+            }
+        }
+    }
+}
+finally
+{
+    if ($connection.Active)
+    {
+        $connection.Close()
+    }
+    $connection.Dispose()
+}
