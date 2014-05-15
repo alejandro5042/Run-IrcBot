@@ -57,9 +57,9 @@ function Run()
     try
     {
         $connection = New-Object Net.Sockets.TcpClient($Server, $Port)
-        [Net.Sockets.NetworkStream]$networkStream = $connection.GetStream()
-        $script:reader = new-object IO.StreamReader($networkStream, [Text.Encoding]::ASCII)
-        $script:writer = new-object IO.StreamWriter($networkStream, [Text.Encoding]::ASCII)
+        $networkStream = $connection.GetStream()
+        $script:reader = New-Object IO.StreamReader($networkStream, [Text.Encoding]::ASCII)
+        $script:writer = New-Object IO.StreamWriter($networkStream, [Text.Encoding]::ASCII)
         
         $BotScript = (gi $BotScript)
         $user = $BotScript.BaseName
@@ -70,7 +70,7 @@ function Run()
         $running = $true
         while ($running)
         {            
-            while ($running -and $reader.Peek() -ne -1)
+            while ($running -and ($networkStream.DataAvailable -or $reader.Peek() -ne -1))
             {
                 $line = $reader.ReadLine().Trim()
                 
