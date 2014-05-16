@@ -21,9 +21,11 @@ function InstinctBot ($message, $bot)
         "__begin" {
             "/nick $($bot.UserName)"
             "/user $($bot.UserName) localhost $($bot.ServerName) ps-ircbot"
+            break
         }
         "__end" {
             Write-Host "Bye!"
+            break
         }
         "PING" { 
             "/pong $($message.ArgumentString)"
@@ -33,14 +35,17 @@ function InstinctBot ($message, $bot)
         {
             $newNick = $message.Arguments[1] + "_"
             "/nick $newNick"
+            break
         }
         "323"
         {
             #"/quit haha"
+            break
         }
         "376"
         {
             "/list"
+            break
         }
         "error"
         {
@@ -49,30 +54,34 @@ function InstinctBot ($message, $bot)
         default
         {
             # write-host $command $args
+            break
         }
     }
 }
 
-filter Parse-SendLine
+filter Parse-OutgoingLine ($message, $bot)
 {
     switch -regex ($_)
     {
         '^/' {
             $_.Substring(1)
+            break
         }
         '^/me\s+(.*)' {
             "$([char]1)ACTION $($Matches[1])$([char]1)"
+            break
         }
         default {
             $_
+            break
         }
     }
 }
 
-filter Write-Irc ($bot)
+filter Write-Irc ($message, $bot)
 {
     ([string]$_) -split '\n' |
-        Parse-SendLine |
+        Parse-OutgoingLine $message $bot |
         foreach {
             Write-Verbose "<< $_"
             $bot.Writer.WriteLine($_)
@@ -81,49 +90,60 @@ filter Write-Irc ($bot)
         }
 }
 
-function Parse-Line ($line, $bot)
+function Parse-IncomingLine ($line, $bot)
 {
-    if ($line -match "^(?::([^\s]*)\s+)?([^\s]+)(?:\s*(.*))?")
+    switch -regex ($line)
     {
-        Write-Verbose "[$(Get-Date)] >> $line"
-        
-        $message = "" | select Prefix, Command, ArgumentString, Arguments, Text
-        
-        $message.Prefix = $Matches[1]
-        $message.Command = $Matches[2]
-        $message.ArgumentString = $Matches[3]
-        
-        $singleWordArguments, $rest = ("dummy " + $message.ArgumentString) -split " :"
-        $singleWordArguments = $singleWordArguments -split " "
-        $message.Arguments = @(($singleWordArguments + $rest) | select -skip 1 | foreach { $_.Trim() })
-        #write-verbose ($message.Arguments -join "|")
-        
-        $message.Text = ""
-        
-        try
+        "^(?::([^\s]*)\s+)?([^\s]+)(?:\s*(.*))?"
         {
-            & $bot.BotScript $message $bot |
-                foreach { $handled = $true; $_ } |
-                Write-Irc $bot
-                
-            if (!$handled)
-            {
-                InstinctBot $message $bot |
-                    Write-Irc $bot
-            }
+            Write-Verbose "[$(Get-Date)] >> $line"
+            
+            $message = "" | select Prefix, Command, ArgumentString, Arguments, Text
+            
+            $message.Prefix = $Matches[1]
+            $message.Command = $Matches[2]
+            $message.ArgumentString = $Matches[3]
+            
+            $singleWordArguments, $rest = ("dummy " + $message.ArgumentString) -split " :"
+            $singleWordArguments = $singleWordArguments -split " "
+            $message.Arguments = @(($singleWordArguments + $rest) | select -skip 1 | foreach { $_.Trim() })
+            #write-verbose ($message.Arguments -join "|")
+            
+            $message.Text = ""
+            
+            return $message
         }
-        catch
+        default
         {
-            Write-Error $_
+            Write-Warning "Unknown line >> $line"
+            break
         }
-    }
-    else
-    {
-        Write-Warning "Unknown line >> $line"
     }
 }
 
-function Run-Bot
+function Run-Bot ($line, $bot)
+{
+    $message = Parse-IncomingLine $line $bot
+        
+    try
+    {
+        & $bot.BotScript $message $bot |
+            foreach { $handled = $true; $_ } |
+            Write-Irc $message $bot
+            
+        if (!$handled)
+        {
+            InstinctBot $message $bot |
+                Write-Irc $message $bot
+        }
+    }
+    catch
+    {
+        Write-Error $_
+    }
+}
+
+function Main
 {
     try
     {
@@ -158,7 +178,7 @@ function Run-Bot
         $bot.Writer = New-Object IO.StreamWriter($bot.NetworkStream, $bot.TextEncoding)
         Write-Verbose "Connected!"
         
-        Parse-Line "__begin" $bot
+        Run-Bot "__begin" $bot
         try
         {
             $active = $false
@@ -176,14 +196,14 @@ function Run-Bot
                 
                 while ($bot.Running -and ($bot.NetworkStream.DataAvailable -or $bot.Reader.Peek() -ne -1))
                 {
-                    Parse-Line $bot.Reader.ReadLine() $bot
+                    Run-Bot $bot.Reader.ReadLine() $bot
                     $active = $true
                 }
             }
         }
         finally
         {
-            Parse-Line "__end" $bot
+            Run-Bot "__end" $bot
         }
     }
     finally
@@ -195,4 +215,4 @@ function Run-Bot
     }
 }
 
-Run-Bot
+Main
