@@ -90,16 +90,16 @@ filter Write-Irc ($message, $bot)
         }
 }
 
-function Parse-IncomingLine ($line, $bot)
+filter Parse-IncomingLine ($bot)
 {
-    switch -regex ($line)
+    switch -regex ($_)
     {
-        "^(?::([^\s]*)\s+)?([^\s]+)(?:\s*(.*))?"
-        {
-            Write-Verbose "[$(Get-Date)] >> $line"
+        "^(?::([^\s]*)\s+)?([^\s]+)(?:\s*(.*))?" {
+            Write-Verbose "[$(Get-Date)] >> $_"
             
-            $message = "" | select Prefix, Command, ArgumentString, Arguments, Text
+            $message = "" | select Line, Prefix, Command, ArgumentString, Arguments, Text
             
+            $message.Line = $_
             $message.Prefix = $Matches[1]
             $message.Command = $Matches[2]
             $message.ArgumentString = $Matches[3]
@@ -123,23 +123,25 @@ function Parse-IncomingLine ($line, $bot)
 
 function Run-Bot ($line, $bot)
 {
-    $message = Parse-IncomingLine $line $bot
-        
-    try
+    $message = $line | Parse-IncomingLine $bot
+    if ($message)
     {
-        & $bot.BotScript $message $bot |
-            foreach { $handled = $true; $_ } |
-            Write-Irc $message $bot
-            
-        if (!$handled)
+        try
         {
-            InstinctBot $message $bot |
+            & $bot.BotScript $message $bot |
+                foreach { $handled = $true; $_ } |
                 Write-Irc $message $bot
+                
+            if (!$handled)
+            {
+                InstinctBot $message $bot |
+                    Write-Irc $message $bot
+            }
         }
-    }
-    catch
-    {
-        Write-Error $_
+        catch
+        {
+            Write-Error $_
+        }
     }
 }
 
