@@ -14,8 +14,17 @@ param
     $State = (New-Object PSCustomObject)
 )
 
+# TODO: Hook this up as the default bot.... maybe?
+function MonitorBot ($message, $bot)
+{
+    if ($message.Text)
+    {
+        $message.Text
+    }
+}
+
 function InstinctBot ($message, $bot)
-{    
+{
     switch ($message.Command)
     {
         "__begin" {
