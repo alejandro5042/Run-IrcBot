@@ -1,8 +1,8 @@
 param ($Message, $Bot)
 
-#$State = $State | select Counter
-#$State.Counter += 1
-#Write-Host "Counter = $($State.Counter)"
+$Bot.State.Counter += 1
+Write-Host "Counter = $($Bot.State.Counter)"
+#throw "wtf"
 
 switch ($Message.Command)
 {

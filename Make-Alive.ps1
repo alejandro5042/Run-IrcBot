@@ -14,7 +14,7 @@ param
     [string]
     $Channel,
     
-    $State = (New-Object PSCustomObject)
+    $State = @{}
 )
 
 # TODO: Hook this up as the default bot.... maybe?
@@ -30,16 +30,19 @@ function InstinctBot ($message, $bot)
 {
     switch ($message.Command)
     {
-        "__begin" {
+        "__begin"
+        {
             "/nick $($bot.UserName)"
             "/user $($bot.UserName) localhost $($bot.ServerName) ps-ircbot"
             break
         }
-        "__end" {
+        "__end"
+        {
             Write-Host "Bye!"
             break
         }
-        "ping" { 
+        "ping"
+        {
             "/pong $($message.ArgumentString)"
             break
         }
@@ -154,7 +157,7 @@ function Run-Bot ($line, $bot)
         }
         catch
         {
-            Write-Error $_
+            Write-Error -ErrorRecord $_
         }
     }
 }
@@ -163,7 +166,7 @@ function Main
 {
     try
     {
-        $bot = "" | select ServerName, ServerPort, Channel, TextEncoding, UserName, State, BotScript, Connection, NetworkStream, Reader, Writer, InteractiveDelay, InactiveDelay, Running
+        $bot = "" | select ServerName, ServerPort, Channel, TextEncoding, UserName, State, BotScript, Connection, NetworkStream, Reader, Writer, InteractiveDelay, InactiveDelay, Running, _MemoryStream
         
         $bot.ServerName, $bot.ServerPort = $Server -split ":"
         if (!$bot.ServerPort)
@@ -188,17 +191,20 @@ function Main
         $bot.BotScript = $botScriptItem.FullName
         
         Write-Verbose "Connecting to: $($bot.ServerName):$($bot.ServerPort)"
-        $bot.Connection = New-Object Net.Sockets.TcpClient($bot.ServerName, $bot.ServerPort)
+        $bot.Connection = New-Object Net.Sockets.TcpClient ($bot.ServerName, $bot.ServerPort)
         $bot.NetworkStream = $bot.Connection.GetStream()
-        $bot.Reader = New-Object IO.StreamReader($bot.NetworkStream, $bot.TextEncoding)
-        $bot.Writer = New-Object IO.StreamWriter($bot.NetworkStream, $bot.TextEncoding)
+        $bot.Reader = New-Object IO.StreamReader ($bot.NetworkStream, $bot.TextEncoding)
+        $bot.Writer = New-Object IO.StreamWriter ($bot.NetworkStream, $bot.TextEncoding)
         Write-Verbose "Connected!"
         
+        $bot.Running = $true
         Run-Bot "__begin" $bot
+        
         try
         {
             $active = $false
-            $bot.Running = $true
+            $receiveBuffer = new-object byte[] ($bot.Connection.ReceiveBufferSize)
+            
             while ($bot.Running)
             {
                 if ($active)
@@ -210,23 +216,33 @@ function Main
                     sleep -Milliseconds $bot.InactiveDelay
                 }
                 
-                while ($bot.Running -and ($bot.NetworkStream.DataAvailable -or $bot.Reader.Peek() -ne -1))
+                $active = $false
+                
+                 while ($bot.Running -and ($bot.NetworkStream.DataAvailable -or $bot.Reader.Peek() -ne -1))
                 {
-                    Run-Bot $bot.Reader.ReadLine() $bot
-                    $active = $true
+                    $line = $bot.Reader.ReadLine()
+                    if ($line -ne $null)
+                    {
+                        Run-Bot $line $bot
+                    }
                 }
             }
         }
         finally
         {
+            $bot.Running = $false
             Run-Bot "__end" $bot
         }
     }
     finally
     {
-        Write-Verbose "Closing connection..."
-        $connection.Close()
-        $connection.Dispose()
+        if ($bot.Connection)
+        {
+            Write-Verbose "Closing connection..."
+            $bot.Connection.Close()
+            $bot.Connection.Dispose()
+        }
+        
         Write-Verbose "Done!"
     }
 }
