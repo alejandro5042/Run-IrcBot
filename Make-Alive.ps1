@@ -11,40 +11,24 @@ param
     [string]
     $Channel,
     
-    $State = (new-object pscustomobject)
+    $State = (New-Object PSCustomObject)
 )
 
-$sleepDelay = 1000
-$interactiveDelay = 200
-
-filter Out-Irc ($writer)
-{
-    $str = [string]$_
-    
-    if ($str.StartsWith('/'))
+function Run-SubconsiousBot ($message, $bot)
+{    
+    switch ($message.Command)
     {
-        $str = $str.Substring(1)
-    }
-    
-    $str -split '\n' | foreach {    
-        Write-Verbose "<< $_"
-        $writer.WriteLine($_)
-        $writer.Flush()
-        sleep -Milliseconds $interactiveDelay
-    }
-}
-
-function Run-SubconsiousBot ($message, $command)
-{
-    switch ($command)
-    {
+        "begin" {
+            "/nick $($bot.UserName)"
+            "/user $($bot.UserName) localhost $($bot.ServerName) ps-ircbot"
+        }
         "PING" { 
-            "/pong :$($arguments[0])"
+            "/pong $($message.ArgumentString)"
             break
         }
         "433" # Nickname already in use.
         {
-            $newNick = $arguments[1] + "_"
+            $newNick = $message.Arguments[1] + "_"
             "/nick $newNick"
         }
         "323"
@@ -66,100 +50,136 @@ function Run-SubconsiousBot ($message, $command)
     }
 }
 
-function Parse-Command ($command, [ref]$state, $botScript, $botArgs)
+filter Write-Irc ($bot)
 {
-    $message = ''
-    & $botScript $message $command ([ref]$state) @botArgs | foreach { $outputted = $true; $_ }
-    if (!$outputted)
+    $str = [string]$_
+    
+    if ($str.StartsWith('/'))
     {
-        Run-SubconsiousBot $message $command
+        $str = $str.Substring(1)
+    }
+    
+    $str -split '\n' | foreach {    
+        Write-Verbose "<< $_"
+        $bot.Writer.WriteLine($_)
+        $bot.Writer.Flush()
+        sleep -Milliseconds $bot.InteractiveDelay
     }
 }
 
-try
+function Parse-Line ($line, $bot)
 {
-    $serverName, $port = $Server -split ":"
-    if (!$port)
+    if ($line -match "^(?::([^\s]*)\s+)?([^\s]+)(?:\s*(.*))?")
     {
-        $port = 6667
-    }
-    
-    Write-Verbose "Connecting to: $serverName`:$port"
-    $connection = New-Object Net.Sockets.TcpClient($serverName, $port)
-    $networkStream = $connection.GetStream()
-    $reader = New-Object IO.StreamReader($networkStream, [Text.Encoding]::ASCII)
-    $writer = New-Object IO.StreamWriter($networkStream, [Text.Encoding]::ASCII)
-    Write-Verbose "Connected!"
-    
-    if (!(Test-Path $BotScript))
-    {
-        $BotScript = $BotScript + '.ps1'
-    }
-    $BotScript = (gi $BotScript)
-    $user = $BotScript.BaseName
-    $BotScript = $BotScript.FullName
-    
-    "/nick $user" | Out-Irc $writer
-    "/user $user localhost $Server ps-ircbot" | Out-Irc $writer
-    
-    $active = $false
-    while ($true)
-    {
-        if ($active)
+        Write-Verbose "[$(Get-Date)] >> $line"
+        
+        $message = "" | select Prefix, Command, ArgumentString, Arguments, Text
+        
+        $message.Prefix = $Matches[1]
+        $message.Command = $Matches[2]
+        $message.ArgumentString = $Matches[3]
+        
+        $singleWordArguments, $rest = ("dummy " + $message.ArgumentString) -split " :"
+        $singleWordArguments = $singleWordArguments -split " "
+        $message.Arguments = @(($singleWordArguments + $rest) | select -skip 1 | foreach { $_.Trim() })
+        #write-verbose ($message.Arguments -join "|")
+        
+        $message.Text = ""
+        
+        try
         {
-            sleep -Milliseconds $interactiveDelay
+            
+            #& $bot.BotScript $message $bot |
+            #    foreach { $handled = $true; $_ } |
+            #    Write-Irc $bot
+                
+            if (!$handled)
+            {
+                Run-SubconsiousBot $message $bot |
+                    Write-Irc $bot
+            }
         }
-        else
+        catch
         {
-            sleep -Milliseconds $sleepDelay
+            Write-Error $_
+        }
+    }
+    else
+    {
+        Write-Warning "Unknown line >> $line"
+    }
+}
+
+function Run-Bot
+{
+    try
+    {
+        $bot = "" | select ServerName, ServerPort, Channel, TextEncoding, UserName, State, BotScript, Connection, NetworkStream, Reader, Writer, InteractiveDelay, InactiveDelay, Running
+        
+        $bot.ServerName, $bot.ServerPort = $Server -split ":"
+        if (!$bot.ServerPort)
+        {
+            $bot.ServerPort = 6667
         }
         
-        while ($networkStream.DataAvailable -or $reader.Peek() -ne -1)
+        $bot.InactiveDelay = 1000
+        $bot.InteractiveDelay = 200
+        $bot.BotScript = $BotScript
+        $bot.State = $State
+        $bot.Channel = $Channel
+        $bot.TextEncoding = [Text.Encoding]::ASCII
+        
+        if (!(Test-Path $bot.BotScript))
         {
-            $active = $true
-            $line = $reader.ReadLine().Trim()
-            
-            if ($line -match "^(?::([^\s]*)\s+)?([^\s]+)(?:\s*(.*))?")
+            $bot.BotScript = $bot.BotScript + '.ps1'
+        }
+        
+        $botScriptItem = gi $bot.BotScript
+        $bot.UserName = $botScriptItem.BaseName
+        $bot.BotScript = $botScriptItem.FullName
+        
+        Write-Verbose "Connecting to: $($bot.ServerName):$($bot.ServerPort)"
+        $bot.Connection = New-Object Net.Sockets.TcpClient($bot.ServerName, $bot.ServerPort)
+        $bot.NetworkStream = $bot.Connection.GetStream()
+        $bot.Reader = New-Object IO.StreamReader($bot.NetworkStream, $bot.TextEncoding)
+        $bot.Writer = New-Object IO.StreamWriter($bot.NetworkStream, $bot.TextEncoding)
+        Write-Verbose "Connected!"
+        
+        Parse-Line "begin" $bot
+        try
+        {
+            $active = $false
+            $bot.Running = $true
+            while ($bot.Running)
             {
-                Write-Verbose "[$(Get-Date)] >> $line"
-                
-                $Command = [PSCustomObject]@{
-                    Sender = "";
-                    Type = ""
-                }
-                
-                $sender = $Matches[1]
-                $type = $Matches[2]
-                $arguments = $Matches[3]
-                
-                $Command.Type = $type
-                
-                $singleWordArguments, $rest = "dummy $arguments" -split " :"
-                $singleWordArguments = $singleWordArguments -split " "
-                $arguments = $singleWordArguments + $rest
-                $arguments = @($arguments | select -skip 1 | foreach { $_.Trim() })
-                #write-verbose ($arguments -join "|")
-                
-                try
+                if ($active)
                 {
-                    Parse-Command $type ([ref]$State) $BotScript | Out-Irc $writer
+                    sleep -Milliseconds $bot.InteractiveDelay
                 }
-                catch
+                else
                 {
-                    Write-Error $_
+                    sleep -Milliseconds $bot.InactiveDelay
                 }
-            }
-            else
-            {
-                Write-Warning "Unknown line >> $line"
+                
+                while ($bot.Running -and ($bot.NetworkStream.DataAvailable -or $bot.Reader.Peek() -ne -1))
+                {
+                    Parse-Line $bot.Reader.ReadLine() $bot
+                    $active = $true
+                }
             }
         }
+        finally
+        {
+            Parse-Line "end" $bot
+        }
+    }
+    finally
+    {
+        Write-Verbose "Closing connection..."
+        $connection.Close()
+        $connection.Dispose()
+        Write-Verbose "Done!"
     }
 }
-finally
-{
-    Write-Verbose "Closing connection..."
-    $connection.Close()
-    $connection.Dispose()
-    Write-Verbose "Done!"
-}
+
+Run-Bot

@@ -1,10 +1,10 @@
-param ($Message, $Command, [ref]$State, [switch]$awesome)
+param ($Message, $Bot)
 
 #$State = $State | select Counter
 #$State.Counter += 1
 #Write-Host "Counter = $($State.Counter)"
 
-switch ($command)
+switch ($Message.Command)
 {
     "ping" { write-host "haha!" }
     default
