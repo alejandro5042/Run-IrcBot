@@ -1,4 +1,5 @@
 # TODO: Add license
+# TODO: Need /__keepalive
 
 [CmdLetBinding()]
 param
@@ -38,7 +39,7 @@ function InstinctBot ($message, $bot)
             Write-Host "Bye!"
             break
         }
-        "PING" { 
+        "ping" { 
             "/pong $($message.ArgumentString)"
             break
         }
