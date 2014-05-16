@@ -74,12 +74,12 @@ filter Parse-OutgoingLine ($message, $bot)
 {
     switch -regex ($_)
     {
-        '^/' {
-            $_.Substring(1)
-            break
-        }
         '^/me\s+(.*)' {
             "$([char]1)ACTION $($Matches[1])$([char]1)"
+            break
+        }
+        '^/' {
+            $_.Substring(1)
             break
         }
         default {
