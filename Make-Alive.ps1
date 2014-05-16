@@ -89,9 +89,9 @@ function Parse-Line ($line, $bot)
         try
         {
             
-            #& $bot.BotScript $message $bot |
-            #    foreach { $handled = $true; $_ } |
-            #    Write-Irc $bot
+            & $bot.BotScript $message $bot |
+                foreach { $handled = $true; $_ } |
+                Write-Irc $bot
                 
             if (!$handled)
             {
