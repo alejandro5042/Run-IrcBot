@@ -1,4 +1,6 @@
-#[CmdLetBinding()]
+# TODO: Add license
+
+[CmdLetBinding()]
 param
 (
     [Parameter(Mandatory = $true)]
