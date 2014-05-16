@@ -14,13 +14,16 @@ param
     $State = (New-Object PSCustomObject)
 )
 
-function Run-SubconsiousBot ($message, $bot)
+function InstinctBot ($message, $bot)
 {    
     switch ($message.Command)
     {
-        "begin" {
+        "__begin" {
             "/nick $($bot.UserName)"
             "/user $($bot.UserName) localhost $($bot.ServerName) ps-ircbot"
+        }
+        "__end" {
+            Write-Host "Bye!"
         }
         "PING" { 
             "/pong $($message.ArgumentString)"
@@ -50,21 +53,32 @@ function Run-SubconsiousBot ($message, $bot)
     }
 }
 
+filter Parse-SendLine
+{
+    switch -regex ($_)
+    {
+        '^/' {
+            $_.Substring(1)
+        }
+        '^/me\s+(.*)' {
+            "$([char]1)ACTION $($Matches[1])$([char]1)"
+        }
+        default {
+            $_
+        }
+    }
+}
+
 filter Write-Irc ($bot)
 {
-    $str = [string]$_
-    
-    if ($str.StartsWith('/'))
-    {
-        $str = $str.Substring(1)
-    }
-    
-    $str -split '\n' | foreach {    
-        Write-Verbose "<< $_"
-        $bot.Writer.WriteLine($_)
-        $bot.Writer.Flush()
-        sleep -Milliseconds $bot.InteractiveDelay
-    }
+    ([string]$_) -split '\n' |
+        Parse-SendLine |
+        foreach {
+            Write-Verbose "<< $_"
+            $bot.Writer.WriteLine($_)
+            $bot.Writer.Flush()
+            sleep -Milliseconds $bot.InteractiveDelay
+        }
 }
 
 function Parse-Line ($line, $bot)
@@ -88,14 +102,13 @@ function Parse-Line ($line, $bot)
         
         try
         {
-            
             & $bot.BotScript $message $bot |
                 foreach { $handled = $true; $_ } |
                 Write-Irc $bot
                 
             if (!$handled)
             {
-                Run-SubconsiousBot $message $bot |
+                InstinctBot $message $bot |
                     Write-Irc $bot
             }
         }
@@ -145,7 +158,7 @@ function Run-Bot
         $bot.Writer = New-Object IO.StreamWriter($bot.NetworkStream, $bot.TextEncoding)
         Write-Verbose "Connected!"
         
-        Parse-Line "begin" $bot
+        Parse-Line "__begin" $bot
         try
         {
             $active = $false
@@ -170,7 +183,7 @@ function Run-Bot
         }
         finally
         {
-            Parse-Line "end" $bot
+            Parse-Line "__end" $bot
         }
     }
     finally
