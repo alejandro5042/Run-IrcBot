@@ -139,6 +139,8 @@ function Run-Bot ($line, $bot)
     {
         try
         {
+            $handled = $false
+            
             & $bot.BotScript $message $bot |
                 foreach { $handled = $true; $_ } |
                 Write-Irc $message $bot
