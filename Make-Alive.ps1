@@ -1,4 +1,4 @@
-[CmdLetBinding()]
+#[CmdLetBinding()]
 param
 (
     [Parameter(Mandatory = $true)]
@@ -11,8 +11,11 @@ param
     [string]
     $Channel,
     
-    $State
+    $State = (new-object pscustomobject)
 )
+
+$sleepDelay = 1000
+$interactiveDelay = 200
 
 filter Out-Irc ($writer)
 {
@@ -26,14 +29,19 @@ filter Out-Irc ($writer)
     $str -split '\n' | foreach {    
         Write-Verbose "<< $_"
         $writer.WriteLine($_)
+        $writer.Flush()
+        sleep -Milliseconds $interactiveDelay
     }
-    $writer.Flush()
 }
 
-function Run-SubconsiousBot ($message, $command, $state)
+function Run-SubconsiousBot ($message, $command)
 {
     switch ($command)
     {
+        "PING" { 
+            "/pong :$($arguments[0])"
+            break
+        }
         "433" # Nickname already in use.
         {
             $newNick = $arguments[1] + "_"
@@ -41,7 +49,7 @@ function Run-SubconsiousBot ($message, $command, $state)
         }
         "323"
         {
-            "/quit haha"
+            #"/quit haha"
         }
         "376"
         {
@@ -49,7 +57,7 @@ function Run-SubconsiousBot ($message, $command, $state)
         }
         "error"
         {
-            throw $arguments[0]
+            exit
         }
         default
         {
@@ -58,13 +66,13 @@ function Run-SubconsiousBot ($message, $command, $state)
     }
 }
 
-function Parse-Command ($command, $state, $botScript)
+function Parse-Command ($command, [ref]$state, $botScript, $botArgs)
 {
     $message = ''
-    & $botScript $message $command $state | foreach { $outputted = $true; $_ }
+    & $botScript $message $command ([ref]$state) @botArgs | foreach { $outputted = $true; $_ }
     if (!$outputted)
     {
-        Run-SubconsiousBot $message $command $state
+        Run-SubconsiousBot $message $command
     }
 }
 
@@ -76,10 +84,12 @@ try
         $port = 6667
     }
     
+    Write-Verbose "Connecting to: $serverName`:$port"
     $connection = New-Object Net.Sockets.TcpClient($serverName, $port)
     $networkStream = $connection.GetStream()
     $reader = New-Object IO.StreamReader($networkStream, [Text.Encoding]::ASCII)
     $writer = New-Object IO.StreamWriter($networkStream, [Text.Encoding]::ASCII)
+    Write-Verbose "Connected!"
     
     if (!(Test-Path $BotScript))
     {
@@ -92,18 +102,26 @@ try
     "/nick $user" | Out-Irc $writer
     "/user $user localhost $Server ps-ircbot" | Out-Irc $writer
     
-    $running = $true
-    while ($running)
+    $active = $false
+    while ($true)
     {
-        sleep -Milliseconds 100
-        
-        while ($running -and ($networkStream.DataAvailable -or $reader.Peek() -ne -1))
+        if ($active)
         {
+            sleep -Milliseconds $interactiveDelay
+        }
+        else
+        {
+            sleep -Milliseconds $sleepDelay
+        }
+        
+        while ($networkStream.DataAvailable -or $reader.Peek() -ne -1)
+        {
+            $active = $true
             $line = $reader.ReadLine().Trim()
             
             if ($line -match "^(?::([^\s]*)\s+)?([^\s]+)(?:\s*(.*))?")
             {
-                Write-Verbose ">> $line"
+                Write-Verbose "[$(Get-Date)] >> $line"
                 
                 $Command = [PSCustomObject]@{
                     Sender = "";
@@ -119,23 +137,16 @@ try
                 $singleWordArguments, $rest = "dummy $arguments" -split " :"
                 $singleWordArguments = $singleWordArguments -split " "
                 $arguments = $singleWordArguments + $rest
-                $arguments = $arguments | select -skip 1 | foreach { $_.Trim() }
-                write-verbose ($arguments -join "|")
+                $arguments = @($arguments | select -skip 1 | foreach { $_.Trim() })
+                #write-verbose ($arguments -join "|")
                 
                 try
                 {
-                    Parse-Command $type $State $BotScript | Out-Irc $writer
+                    Parse-Command $type ([ref]$State) $BotScript | Out-Irc $writer
                 }
                 catch
                 {
-                    if ($_.FullyQualifiedErrorId -eq "ScriptHalted")
-                    {
-                        $running = $false
-                    }
-                    else
-                    {
-                        Write-Error $_
-                    }
+                    Write-Error $_
                 }
             }
             else
@@ -147,9 +158,8 @@ try
 }
 finally
 {
-    if ($connection.Active)
-    {
-        $connection.Close()
-    }
+    Write-Verbose "Closing connection..."
+    $connection.Close()
     $connection.Dispose()
+    Write-Verbose "Done!"
 }

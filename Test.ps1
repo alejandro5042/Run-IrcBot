@@ -1,1 +1,1 @@
-.\Make-Alive.ps1 superbot niirc -Verbose
+.\Make-Alive.ps1 superbot niirc -Verbose #-Awesome
