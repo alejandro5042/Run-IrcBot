@@ -16,7 +16,7 @@ switch -regex ($Message.Text)
 
 switch ($Message.Command)
 {
-    "BOT_STATIC_INIT"
+    "BOT_INIT"
     {
         if ($bot.State.DieImmediately) { throw "shit!" }
     }
