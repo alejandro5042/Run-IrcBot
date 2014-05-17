@@ -17,9 +17,6 @@ param
     [string]
     $User,
     
-    [int]
-    $TimerInterval,
-    
     [switch]
     $Silent,
     
@@ -676,7 +673,7 @@ function Main
         $bot.Running = $false
         $bot.InactiveDelay = 1000
         $bot.InteractiveDelay = 100
-        $bot.TimerInterval = $TimerInterval
+        $bot.TimerInterval = 0
         $bot.BotScript = $BotScript
         $bot.State = $State
         $bot.Channels = $Channels
