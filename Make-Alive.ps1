@@ -577,11 +577,7 @@ function Run-Bot ($line, $bot, [switch]$fatal)
         if (!$bot.CurrentError)
         {
             $bot.CurrentError = $_
-            
-            else
-            {
-                Write-Error -ErrorRecord $bot.CurrentError
-            }
+            Write-Error -ErrorRecord $bot.CurrentError
             
             if ($bot.CurrentError.CategoryInfo.Category -ne "ParserError")
             {
