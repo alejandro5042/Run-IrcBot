@@ -28,6 +28,8 @@ $BANNER = "PowerShell IRC Bot Framework -- $SOURCE_URL"
 
 $DEFAULT_BOT_DESCRIPTION = "Based on -- $SOURCE_URL"
 
+$DEFAULT_BOT_USER = "ps-ircbot"
+
 #################################################################
 
 $RESPONSE_CODES = @{
@@ -650,7 +652,7 @@ function Run-Bot ($line, $bot, [switch]$fatal)
     $bot.CurrentError = $null
 }
 
-function Run-BotSession
+function Main
 {
     try
     {
@@ -674,14 +676,21 @@ function Run-BotSession
         $bot.Channels = $Channels
         $bot.TextEncoding = [Text.Encoding]::ASCII
         
-        if (!(Test-Path $bot.BotScript))
+        if ($bot.BotScript -isnot [ScriptBlock])
         {
-            $bot.BotScript = $bot.BotScript + '.ps1'
+            if (!(Test-Path $bot.BotScript))
+            {
+                $bot.BotScript = $bot.BotScript + '.ps1'
+            }
+            
+            $botScriptItem = gi $bot.BotScript
+            $bot.User = $botScriptItem.BaseName
+            $bot.BotScript = $botScriptItem.FullName
         }
-        
-        $botScriptItem = gi $bot.BotScript
-        $bot.User = $botScriptItem.BaseName
-        $bot.BotScript = $botScriptItem.FullName
+        else
+        {
+            $bot.User = $DEFAULT_BOT_USER
+        }
         
         $bot.Nickname = $bot.User
         $bot.Description = $DEFAULT_BOT_DESCRIPTION
@@ -774,4 +783,4 @@ function Run-BotSession
     }
 }
 
-Run-BotSession
+Main
