@@ -17,6 +17,9 @@ param
     [int]
     $TimerInterval,
     
+    [switch]
+    $Silent,
+    
     $State = @{}
 )
 
@@ -434,6 +437,23 @@ $RESPONSE_CODES = @{
     502 = 'ERR_USERSDONTMATCH';
 }
 
+function Write-Banner ($message)
+{
+    if (!$Silent)
+    {
+        Write-Host $message -Foreground DarkGray
+        Write-Host
+    }
+}
+
+function Write-BotHost ($message)
+{
+    if (!$Silent)
+    {
+        Write-Host "** $message" -Foreground DarkGray
+    }
+}
+
 function InstinctBot ($message, $bot)
 {
     switch ($message.Command)
@@ -446,12 +466,12 @@ function InstinctBot ($message, $bot)
         }
         'RPL_WELCOME'
         {
-            Write-Host "** $($message.ArgumentString)" -ForegroundColor DarkGray
+            Write-BotHost "Connected -- $($message.ArgumentString)"
             break
         }
         'JOIN'
         {
-            Write-Host "** Joined $($message.Arguments[0])" -ForegroundColor DarkGray
+            Write-BotHost "Joined -- $($message.Arguments[0])"
             break
         }
         'PING'
@@ -475,7 +495,7 @@ function InstinctBot ($message, $bot)
         }
         'ERROR'
         {
-            Write-Host "** Quitting: $($message.Arguments[0]) [$([DateTime]::Now.ToString())]" -ForegroundColor DarkGray
+            Write-BotHost "Quitting -- $($message.Arguments[0]) [$([DateTime]::Now.ToString())]"
             exit
         }
     }
@@ -497,7 +517,7 @@ filter Parse-OutgoingLine ($message, $bot)
         $line = $Matches[2]
     }
     
-    if ($line -match '^/me\s+(.*)')
+    if ($line -match '^/me\s(.*)')
     {
         $line = "$([char]1)ACTION $($Matches[1])$([char]1)"
     }
@@ -532,10 +552,17 @@ filter Write-Irc ($message, $bot)
     $lines |
         Parse-OutgoingLine $message $bot |
         foreach {
-            Write-Verbose "<< $_"
-            $bot.Writer.WriteLine($_)
-            $bot.Writer.Flush()
-            sleep -Milliseconds $bot.InteractiveDelay
+            if ($_ -match '^pipe(?:\s(.*))?')
+            {
+                $Matches[1]
+            }
+            else
+            {
+                Write-Verbose "<< $_"
+                $bot.Writer.WriteLine($_)
+                $bot.Writer.Flush()
+                sleep -Milliseconds $bot.InteractiveDelay
+            }
         }
 }
 
@@ -625,7 +652,7 @@ function Run-BotSession
 {
     try
     {
-        Write-Host $BANNER
+        Write-Banner $BANNER
         
         $bot = "" | select ServerName, ServerPort, Channels, TextEncoding, User, State, BotScript, Connection, NetworkStream, Reader, Writer, InteractiveDelay, InactiveDelay, Running, CurrentError, TimerInterval, StartTime, LastTick, Nickname, Description
         
@@ -734,6 +761,8 @@ function Run-BotSession
             $bot.Connection.Close()
             $bot.Connection.Dispose()
         }
+        
+        Write-BotHost "Finished"
     }
 }
 

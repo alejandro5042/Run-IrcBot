@@ -1,9 +1,10 @@
 param ($Message, $Bot)
 
 $Bot.State.Counter += 1
-Write-Host "Counter = $($Bot.State.Counter)"
+Write-Verbose "Counter = $($Bot.State.Counter)"
 #throw "wtf"
 
+"/pipe $($Message.Line)"
 switch -regex ($Message.Text)
 {
     "lol"
@@ -12,6 +13,8 @@ switch -regex ($Message.Text)
         $bot.TimerInterval = 5000
     }
     "diebot" { "/quit :cya guys!" }
+    "ls" { ls | out-string }
+    default { }
 }
 
 switch ($Message.Command)
