@@ -481,7 +481,8 @@ function InstinctBot ($message, $bot)
         }
         'ERR_NICKNAMEINUSE'
         {
-            $bot.Nickname = $message.Arguments[0] + '_'
+            $bot.NicknameCounter += 1
+            $bot.Nickname = ($message.Arguments[1] -replace "[\d]*$", "") + $bot.NicknameCounter
             "/NICK $($bot.Nickname)"
             break
         }
@@ -654,7 +655,7 @@ function Run-BotSession
     {
         Write-Banner $BANNER
         
-        $bot = "" | select ServerName, ServerPort, Channels, TextEncoding, User, State, BotScript, Connection, NetworkStream, Reader, Writer, InteractiveDelay, InactiveDelay, Running, CurrentError, TimerInterval, StartTime, LastTick, Nickname, Description
+        $bot = "" | select ServerName, ServerPort, Channels, TextEncoding, User, State, BotScript, Connection, NetworkStream, Reader, Writer, InteractiveDelay, InactiveDelay, Running, CurrentError, TimerInterval, StartTime, LastTick, Nickname, Description, NicknameCounter
         
         $bot.ServerName, $bot.ServerPort = $Server -split ":"
         if (!$bot.ServerPort)
@@ -662,6 +663,7 @@ function Run-BotSession
             $bot.ServerPort = 6667
         }
         
+        $bot.NicknameCounter = 1
         $bot.Running = $false
         $bot.InactiveDelay = 1000
         $bot.InteractiveDelay = 100
