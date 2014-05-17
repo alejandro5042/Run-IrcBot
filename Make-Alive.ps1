@@ -12,7 +12,10 @@ param
     $Server,
     
     [string]
-    $Channel,
+    $Channels,
+    
+    [int]
+    $TimerInterval,
     
     $State = @{}
 )
@@ -425,7 +428,6 @@ $RESPONSE_CODES = @{
     502 = 'ERR_USERSDONTMATCH';
 }
 
-
 # TODO: Hook this up as the default bot.... maybe?
 function MonitorBot ($message, $bot)
 {
@@ -452,7 +454,7 @@ function InstinctBot ($message, $bot)
         }
         'ERR_NICKNAMEINUSE'
         {
-            $newNick = $message.Arguments[1] + "_"
+            $newNick = $message.Arguments[0] + '_'
             "/NICK $newNick"
             break
         }
@@ -463,7 +465,10 @@ function InstinctBot ($message, $bot)
         }
         'RPL_ENDOFMOTD'
         {
-            "/LIST"
+            if ($bot.Channels)
+            {
+                "/JOIN $($bot.Channels)"
+            }
             break
         }
         'ERROR'
@@ -480,19 +485,42 @@ function InstinctBot ($message, $bot)
 
 filter Parse-OutgoingLine ($message, $bot)
 {
-    switch -regex ($_)
+    $reply = $_
+    $target = $message.Target
+    
+    if (!$target)
     {
-        '^/me\s+(.*)' {
-            "$([char]1)ACTION $($Matches[1])$([char]1)" # TODO: Test this
+        $target = $bot.Channels
+    }
+    
+    if ($reply -match '^/@([^\s]+)\s+(.*)')
+    {
+        $target = $Matches[1]
+        $reply = $Matches[2]
+    }
+    
+    if ($reply -match '^/me\s+(.*)')
+    {
+        $reply = "$([char]1)ACTION $($Matches[1])$([char]1)"
+    }
+    
+    if (!$reply)
+    {
+        $reply = '-'
+    }
+    
+    if ($reply.StartsWith('/'))
+    {
+        $reply.Substring(1)
+    }
+    else
+    {
+        if (!$target)
+        {
+            throw "No target to send message!"
         }
-        '^/' {
-            $_.Substring(1)
-            break
-        }
-        default {
-            $_
-            break
-        }
+        
+        "PRIVMSG $target :$reply"
     }
 }
 
@@ -514,23 +542,28 @@ filter Parse-IncomingLine ($bot)
     {
         Write-Verbose "[$(Get-Date)] >> $_"
         
-        $message = "" | select Line, Prefix, Command, CommandCode, ArgumentString, Arguments, Text
+        $message = "" | select Line, Prefix, Command, CommandCode, ArgumentString, Arguments, Text, Target
         
         $message.Line = $_
         $message.Prefix = $Matches[1]
         $message.CommandCode = $Matches[2]
         $message.ArgumentString = $Matches[3].TrimStart()
-        $message.Arguments = (@($Matches[4] -split " ") + @($Matches[5])) | where { $_ }
+        $message.Arguments = @(@($Matches[4] -split " ") + @($Matches[5]) | where { $_ })
         
-        $message.Command = $RESPONSE_CODES[$message.CommandCode]
+        $message.Command = $RESPONSE_CODES[[int]($message.CommandCode -as [int])]
         if (!$message.Command)
         {
             $message.Command = $message.CommandCode
         }
         
-        # write-verbose ($message.Arguments -join "|")
+        if ($message.Command -eq "PRIVMSG")
+        {
+            $message.Target = $message.Arguments[0]
+            $message.Text = $message.Arguments[1]
+        }
         
-        $message.Text = ""
+        Write-Verbose $message
+         write-verbose ($message.Arguments -join "|")
         
         return $message
     }
@@ -570,7 +603,7 @@ function Main
 {
     try
     {
-        $bot = "" | select ServerName, ServerPort, Channel, TextEncoding, UserName, State, BotScript, Connection, NetworkStream, Reader, Writer, InteractiveDelay, InactiveDelay, Running, _MemoryStream, LastError
+        $bot = "" | select ServerName, ServerPort, Channels, TextEncoding, UserName, State, BotScript, Connection, NetworkStream, Reader, Writer, InteractiveDelay, InactiveDelay, Running, LastError, TimerInterval, StartTime, LastTick
         
         $bot.ServerName, $bot.ServerPort = $Server -split ":"
         if (!$bot.ServerPort)
@@ -579,10 +612,11 @@ function Main
         }
         
         $bot.InactiveDelay = 1000
-        $bot.InteractiveDelay = 200
+        $bot.InteractiveDelay = 150
+        $bot.TimerInterval = $TimerInterval
         $bot.BotScript = $BotScript
         $bot.State = $State
-        $bot.Channel = $Channel
+        $bot.Channels = $Channels
         $bot.TextEncoding = [Text.Encoding]::ASCII
         
         if (!(Test-Path $bot.BotScript))
@@ -601,12 +635,14 @@ function Main
         $bot.Writer = New-Object IO.StreamWriter ($bot.NetworkStream, $bot.TextEncoding)
         Write-Verbose "Connected!"
         
+        $bot.StartTime = [DateTime]::Now
         $bot.Running = $true
         Run-Bot 'BOT_CONNECTED' $bot
         
         try
         {
             $active = $false
+            $bot.LastTick = [DateTime]::Now
             
             while ($bot.Running)
             {
@@ -621,11 +657,26 @@ function Main
                 
                 $active = $false
                 
-                 while ($bot.Running -and ($bot.NetworkStream.DataAvailable -or $bot.Reader.Peek() -ne -1))
+                if ($bot.TimerInterval)
+                {
+                    if ((New-TimeSpan $bot.LastTick ([DateTime]::Now)).TotalMilliseconds -gt $bot.TimerInterval)
+                    {
+                        Run-Bot 'BOT_TICK' $bot
+                        $bot.LastTick = [DateTime]::Now
+                    }
+                }
+                else
+                {
+                    $bot.LastTick = [DateTime]::Now
+                }
+                
+                while ($bot.Running -and ($bot.NetworkStream.DataAvailable -or $bot.Reader.Peek() -ne -1))
                 {
                     $line = $bot.Reader.ReadLine()
+                    
                     if ($line -ne $null)
                     {
+                        $active = $true
                         Run-Bot $line $bot
                     }
                 }
@@ -635,6 +686,7 @@ function Main
         {
             $bot.LastError = $_
             Run-Bot 'BOT_FATAL_ERROR' $bot
+            throw
         }
         finally
         {
