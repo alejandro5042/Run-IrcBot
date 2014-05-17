@@ -20,11 +20,15 @@ param
     $State = @{}
 )
 
+#################################################################
+
 $SOURCE_URL = "http://github.com/alejandro5042/ps-ircbot"
 
 $BANNER = "PowerShell IRC Bot Framework -- $SOURCE_URL"
 
-$DEFAULT_BOT_DESCRIPTION = $SOURCE_URL
+$DEFAULT_BOT_DESCRIPTION = "Based on -- $SOURCE_URL"
+
+#################################################################
 
 $RESPONSE_CODES = @{
 
