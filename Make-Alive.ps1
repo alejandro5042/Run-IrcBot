@@ -564,22 +564,24 @@ filter Parse-OutgoingLine ($message, $bot)
 
 filter Write-Irc ($message, $bot)
 {
-    $lines = ([string]$_ -split '\n')
-    $lines |
-        Parse-OutgoingLine $message $bot |
-        foreach {
-            if ($_ -match '^pipe(?:\s(.*))?')
-            {
-                $Matches[1]
-            }
-            else
-            {
-                Write-Verbose "<< $_"
-                $bot.Writer.WriteLine($_)
-                $bot.Writer.Flush()
-                sleep -Milliseconds $bot.InteractiveDelay
-            }
+    foreach ($line in ([string]$_ -split '\n') | Parse-OutgoingLine $message $bot)
+    {
+        if ($line -match '^pipe(?:\s(.*))?')
+        {
+            $Matches[1]
         }
+        elseif ($bot.Writer)
+        {
+            Write-Verbose "<< $line"
+            $bot.Writer.WriteLine($line)
+            $bot.Writer.Flush()
+            sleep -Milliseconds $bot.InteractiveDelay
+        }
+        else
+        {
+            # We don't have a writer and we didn't write to the pipe. Ignore the message.
+        }
+    }
 }
 
 filter Parse-IncomingLine ($bot)
