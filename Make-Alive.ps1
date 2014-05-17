@@ -544,7 +544,7 @@ filter Parse-IncomingLine ($bot)
         }
         
         Write-Verbose $message
-         write-verbose ($message.Arguments -join "|")
+        Write-Verbose ($message.Arguments -join "|")
         
         return $message
     }
@@ -553,6 +553,7 @@ filter Parse-IncomingLine ($bot)
 function Run-Bot ($line, $bot, [switch]$fatal)
 {
     $message = $line | Parse-IncomingLine $bot
+    
     try
     {
         if (!$message)
@@ -572,21 +573,31 @@ function Run-Bot ($line, $bot, [switch]$fatal)
         {
             throw
         }
-        else
-        {
-            Write-Error -ErrorRecord $_
-        }
         
-        $bot.LastError = $_
-        Run-Bot 'BOT_ERROR' $bot
+        if (!$bot.CurrentError)
+        {
+            $bot.CurrentError = $_
+            
+            else
+            {
+                Write-Error -ErrorRecord $bot.CurrentError
+            }
+            
+            if ($bot.CurrentError.CategoryInfo.Category -ne "ParserError")
+            {
+                Run-Bot 'BOT_ERROR' $bot
+            }
+        }
     }
+    
+    $bot.CurrentError = $null
 }
 
 function Run-BotSession
 {
     try
     {
-        $bot = "" | select ServerName, ServerPort, Channels, TextEncoding, UserName, State, BotScript, Connection, NetworkStream, Reader, Writer, InteractiveDelay, InactiveDelay, Running, LastError, TimerInterval, StartTime, LastTick, NickName, Description
+        $bot = "" | select ServerName, ServerPort, Channels, TextEncoding, UserName, State, BotScript, Connection, NetworkStream, Reader, Writer, InteractiveDelay, InactiveDelay, Running, CurrentError, TimerInterval, StartTime, LastTick, NickName, Description
         
         $bot.ServerName, $bot.ServerPort = $Server -split ":"
         if (!$bot.ServerPort)
@@ -674,7 +685,7 @@ function Run-BotSession
         }
         catch
         {
-            $bot.LastError = $_
+            $bot.CurrentError = $_
             Run-Bot 'BOT_FATAL_ERROR' $bot
             throw
         }
