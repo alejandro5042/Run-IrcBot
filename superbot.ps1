@@ -12,6 +12,7 @@ switch -regex ($Message.Text)
         "haha :)"
         $bot.TimerInterval = 5000
     }
+    "throw" { throw 'oh crap' }
     "dienow" { "no!"; "/quit" }
     "diebot" { "/quit :cya guys!" }
     "ls" { ls | out-string }

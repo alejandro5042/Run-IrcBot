@@ -491,6 +491,11 @@ function InstinctBot ($message, $bot)
             "/PONG $($message.ArgumentString)"
             break
         }
+        'ERR_ERRONEUSNICKNAME'
+        {
+            $bot.Running = $false
+            throw 'Invalid user name.'
+        }
         'ERR_NICKNAMEINUSE'
         {
             $bot.NicknameCounter += 1
@@ -626,16 +631,21 @@ filter Parse-IncomingLine ($bot)
     }
 }
 
+filter listify
+{
+    (@(($_ | fl | out-string) -split "`n") | foreach { $_.Trim() } | where { $_ } | foreach { "#    $_`n" }) -join ''
+}
+
 function Run-Bot ($line, $bot, [switch]$fatal)
 {
     $message = $line | Parse-IncomingLine $bot
     Write-Verbose ">> $message"
-    
+      
     try
     {
         if (!$message)
         {
-            throw "Unknown command: $message"
+            throw "Unknown command."
         }
         
         InstinctBot $message $bot |
@@ -654,7 +664,7 @@ function Run-Bot ($line, $bot, [switch]$fatal)
         if (!$bot.CurrentError)
         {
             $bot.CurrentError = $_
-            Write-Error -ErrorRecord $bot.CurrentError
+            Write-Error "$($_.Exception.ToString())`n$($_.InvocationInfo.PositionMessage)`n# Message:`n$($message | listify)`n# Bot.State:`n$([pscustomobject]$bot.State | listify)`n# Bot:`n$($bot | listify)"
             
             if ($bot.CurrentError.CategoryInfo.Category -ne "ParserError")
             {
