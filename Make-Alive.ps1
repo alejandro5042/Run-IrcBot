@@ -458,11 +458,6 @@ function InstinctBot ($message, $bot)
             "/NICK $newNick"
             break
         }
-        'RPL_LISTEND'
-        {
-            #"/quit haha"
-            break
-        }
         'RPL_ENDOFMOTD'
         {
             if ($bot.Channels)
@@ -474,11 +469,6 @@ function InstinctBot ($message, $bot)
         'ERROR'
         {
             exit
-        }
-        default
-        {
-            # write-host $command $args
-            break
         }
     }
 }
@@ -493,7 +483,7 @@ filter Parse-OutgoingLine ($message, $bot)
         $target = $bot.Channels
     }
     
-    if ($reply -match '^/@([^\s]+)\s+(.*)')
+    if ($reply -match '^/msg\s+([^\s]+)\s+(.*)')
     {
         $target = $Matches[1]
         $reply = $Matches[2]
@@ -599,7 +589,7 @@ function Run-Bot ($line, $bot)
     }
 }
 
-function Main
+function Run-BotSession
 {
     try
     {
@@ -707,4 +697,4 @@ function Main
     }
 }
 
-Main
+Run-BotSession

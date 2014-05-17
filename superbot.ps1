@@ -11,11 +11,12 @@ switch -regex ($Message.Text)
         "haha :)"
         $bot.TimerInterval = 5000
     }
+    "diebot" { "/quit :cya guys!" }
 }
 
 switch ($Message.Command)
 {
-    "join" { "/@$($Message.Arguments[0]) /me says hi to everyone on $($Message.Arguments[0])"}
+    "join" { "/msg $($Message.Arguments[0]) /me says hi to everyone on $($Message.Arguments[0])"}
     "ping" { "pong! $(Get-Date)" }
     "BOT_TICK" { "haha LOCALS RULE -- $(Get-Date)" }
     default
