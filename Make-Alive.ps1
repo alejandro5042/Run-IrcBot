@@ -1,6 +1,3 @@
-# TODO: Add license
-# TODO: Need /__keepalive
-
 [CmdLetBinding()]
 param
 (
@@ -691,6 +688,11 @@ function Run-BotSession
         Run-Bot 'BOT_INIT' $bot -Fatal
         
         Write-Verbose "Initialized Bot: $bot"
+        
+        if (!$bot.Channels)
+        {
+            Write-BotHost "Warning: No channels to automatically join. You can specify channels on the command line."
+        }
         
         $bot.Connection = New-Object Net.Sockets.TcpClient ($bot.ServerName, $bot.ServerPort)
         $bot.NetworkStream = $bot.Connection.GetStream()
