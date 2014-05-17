@@ -593,7 +593,7 @@ filter Parse-IncomingLine ($bot)
 {
     if ($_ -match "^(?:[:@]([^\s]+) )?([^\s]+)((?: ((?:[^:\s][^\s]* ?)*))?(?: ?:(.*))?)$")
     {
-        $message = "" | select Line, Prefix, Command, CommandCode, ArgumentString, Arguments, Text, Target, Time, SenderNickname, SenderUser, SenderHost
+        $message = "" | select Line, Prefix, Command, CommandCode, ArgumentString, Arguments, Text, Target, Time, SenderNickname, SenderName, SenderHost
         
         $message.Time = (Get-Date)
         $message.Line = $_
@@ -605,7 +605,7 @@ filter Parse-IncomingLine ($bot)
         if ($message.Prefix -match "^(.*?)!(.*?)@(.*?)$")
         {
             $message.SenderNickname = $Matches[1]
-            $message.SenderUser = $Matches[2]
+            $message.SenderName = $Matches[2]
             $message.SenderHost = $Matches[3]
         }
         
