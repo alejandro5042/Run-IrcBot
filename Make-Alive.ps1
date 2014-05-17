@@ -428,23 +428,14 @@ $RESPONSE_CODES = @{
     502 = 'ERR_USERSDONTMATCH';
 }
 
-# TODO: Hook this up as the default bot.... maybe?
-function MonitorBot ($message, $bot)
-{
-    if ($message.Text)
-    {
-        $message.Text
-    }
-}
-
 function InstinctBot ($message, $bot)
 {
     switch ($message.Command)
     {
         'BOT_CONNECTED'
         {
-            "/NICK $($bot.UserName)"
-            "/USER $($bot.UserName) localhost $($bot.ServerName) ps-ircbot"
+            "/NICK $($bot.NickName)"
+            "/USER $($bot.UserName) localhost $($bot.ServerName) :$($bot.Description)"
             break
         }
         'PING'
@@ -454,8 +445,8 @@ function InstinctBot ($message, $bot)
         }
         'ERR_NICKNAMEINUSE'
         {
-            $newNick = $message.Arguments[0] + '_'
-            "/NICK $newNick"
+            $bot.NickName = $message.Arguments[0] + '_'
+            "/NICK $($bot.NickName)"
             break
         }
         'RPL_ENDOFMOTD'
@@ -569,17 +560,11 @@ function Run-Bot ($line, $bot)
             throw "Unknown command: $message"
         }
         
-        $handled = $false
+        InstinctBot $message $bot |
+            Write-Irc $message $bot
         
         & $bot.BotScript $message $bot |
-            foreach { $handled = $true; $_ } |
             Write-Irc $message $bot
-            
-        if (!$handled)
-        {
-            InstinctBot $message $bot |
-                Write-Irc $message $bot
-        }
     }
     catch
     {
@@ -593,7 +578,7 @@ function Run-BotSession
 {
     try
     {
-        $bot = "" | select ServerName, ServerPort, Channels, TextEncoding, UserName, State, BotScript, Connection, NetworkStream, Reader, Writer, InteractiveDelay, InactiveDelay, Running, LastError, TimerInterval, StartTime, LastTick
+        $bot = "" | select ServerName, ServerPort, Channels, TextEncoding, UserName, State, BotScript, Connection, NetworkStream, Reader, Writer, InteractiveDelay, InactiveDelay, Running, LastError, TimerInterval, StartTime, LastTick, NickName, Description
         
         $bot.ServerName, $bot.ServerPort = $Server -split ":"
         if (!$bot.ServerPort)
@@ -601,6 +586,7 @@ function Run-BotSession
             $bot.ServerPort = 6667
         }
         
+        $bot.Running = $false
         $bot.InactiveDelay = 1000
         $bot.InteractiveDelay = 150
         $bot.TimerInterval = $TimerInterval
@@ -617,6 +603,11 @@ function Run-BotSession
         $botScriptItem = gi $bot.BotScript
         $bot.UserName = $botScriptItem.BaseName
         $bot.BotScript = $botScriptItem.FullName
+        
+        $bot.NickName = $bot.UserName
+        $bot.Description = "http://github.com/alejandro5042/ps-ircbot"
+        
+        Run-Bot 'BOT_STATIC_INIT' $bot
         
         Write-Verbose "Connecting to: $($bot.ServerName):$($bot.ServerPort)"
         $bot.Connection = New-Object Net.Sockets.TcpClient ($bot.ServerName, $bot.ServerPort)
@@ -647,7 +638,7 @@ function Run-BotSession
                 
                 $active = $false
                 
-                if ($bot.TimerInterval)
+                if ($bot.Running -and $bot.TimerInterval)
                 {
                     if ((New-TimeSpan $bot.LastTick ([DateTime]::Now)).TotalMilliseconds -gt $bot.TimerInterval)
                     {
