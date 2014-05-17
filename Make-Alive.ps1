@@ -500,16 +500,13 @@ function InstinctBot ($message, $bot)
         }
         'RPL_ENDOFMOTD'
         {
-            if ($bot.Channels)
-            {
-                "/JOIN $($bot.Channels)"
-            }
+            "/JOIN $($bot.Channels)"
             break
         }
         'ERROR'
         {
             Write-BotHost "Quitting -- $($message.Arguments[0]) [$([DateTime]::Now.ToString())]"
-            exit
+            $bot.Running = $false
         }
     }
 }
