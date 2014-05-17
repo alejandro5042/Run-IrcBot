@@ -14,6 +14,9 @@ param
     [string]
     $Channels,
     
+    [string]
+    $User,
+    
     [int]
     $TimerInterval,
     
@@ -693,6 +696,12 @@ function Main
         else
         {
             $bot.User = $DEFAULT_BOT_USER
+        }
+        
+        # Override user if specified.
+        if ($User)
+        {
+            $bot.User = $User
         }
         
         $bot.Nickname = $bot.User
