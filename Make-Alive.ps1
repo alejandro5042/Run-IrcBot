@@ -11,6 +11,7 @@
 param
 (
     [Parameter(Position = 0, Mandatory = $true)]
+    [string]
     $Name,
     
     [Parameter(Position = 1, Mandatory = $true)]
@@ -682,10 +683,6 @@ function Main
         if (Test-Path $Name)
         {
             $bot.Name = (gi $Name).BaseName
-        }
-        elseif ($Name.BaseName)
-        {
-            $bot.Name = $Name.BaseName
         }
         else
         {
