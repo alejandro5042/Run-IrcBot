@@ -10,22 +10,23 @@
 [CmdLetBinding()]
 param
 (
-    [Parameter(Mandatory = $true)]
+    [Parameter(Position = 0, Mandatory = $true)]
     $Name,
     
-    [Parameter(Mandatory = $true)]
+    [Parameter(Position = 1, Mandatory = $true)]
     [string]
     $Server,
     
+    [Parameter(Position = 2, Mandatory = $true)]
     [string[]]
     $Channels,
     
     $BotScript,
     
-    [switch]
-    $Silent,
+    $State = @{},
     
-    $State = @{}
+    [switch]
+    $Silent
 )
 
 #################################################################
@@ -700,7 +701,7 @@ function Main
         $bot.TimerInterval = 0
         $bot.BotScript = $BotScript
         $bot.State = $State
-        $bot.Channels = ($Channels | foreach { "#$_" }) -join ','
+        $bot.Channels = ($Channels | where { $_ } | foreach { "#$_" }) -join ','
         $bot.TextEncoding = [Text.Encoding]::ASCII
         
         if (!$bot.BotScript)
@@ -727,11 +728,6 @@ function Main
         Run-Bot 'BOT_INIT' $bot -Fatal
         
         Write-Verbose "Initialized Bot: $bot"
-        
-        if (!$bot.Channels)
-        {
-            Write-BotHost "Warning: No channels to automatically join. You can specify channels on the command line."
-        }
         
         $bot.Connection = New-Object Net.Sockets.TcpClient ($bot.ServerName, $bot.ServerPort)
         $bot.NetworkStream = $bot.Connection.GetStream()
