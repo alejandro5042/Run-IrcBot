@@ -615,7 +615,7 @@ function Run-BotSession
         $bot.NickName = $bot.UserName
         $bot.Description = "http://github.com/alejandro5042/ps-ircbot"
         
-        # Allow the bot to initialize the bot and/or massage parameters. Plus, if the script fails to compile, we'll know immediately before we connect.
+        # Allow the bot to initialize the bot and/or massage parameters. Plus, if the script fails to compile or statically initialize (maybe because it doesn't like a parameter), we'll quit before we even connect.
         Run-Bot 'BOT_STATIC_INIT' $bot -Fatal
         
         Write-Verbose "Connecting to: $($bot.ServerName):$($bot.ServerPort)"

@@ -16,6 +16,10 @@ switch -regex ($Message.Text)
 
 switch ($Message.Command)
 {
+    "BOT_STATIC_INIT"
+    {
+        if ($bot.State.DieImmediately) { throw "shit!" }
+    }
     "join" { "/msg $($Message.Arguments[0]) /me says hi to everyone on $($Message.Arguments[0])"}
     "ping" { "pong! $(Get-Date)" }
     "BOT_TICK" { "haha LOCALS RULE -- $(Get-Date)" }
