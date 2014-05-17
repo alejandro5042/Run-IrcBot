@@ -22,6 +22,7 @@ param
     [string[]]
     $Channels,
     
+    [Parameter(Position = 3)]
     $BotScript,
     
     $State = @{},
