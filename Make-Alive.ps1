@@ -20,6 +20,12 @@ param
     $State = @{}
 )
 
+$SOURCE_URL = "http://github.com/alejandro5042/ps-ircbot"
+
+$BANNER = "PowerShell IRC Bot Framework -- $SOURCE_URL"
+
+$DEFAULT_BOT_DESCRIPTION = $SOURCE_URL
+
 $RESPONSE_CODES = @{
 
     # 001 Welcome to the Internet Relay Network <nick>!<user>@<host> 
@@ -434,8 +440,18 @@ function InstinctBot ($message, $bot)
     {
         'BOT_CONNECTED'
         {
-            "/NICK $($bot.NickName)"
-            "/USER $($bot.UserName) localhost $($bot.ServerName) :$($bot.Description)"
+            "/NICK $($bot.Nickname)"
+            "/USER $($bot.User) localhost $($bot.ServerName) :$($bot.Description)"
+            break
+        }
+        'RPL_WELCOME'
+        {
+            Write-Host "** $($message.ArgumentString)" -ForegroundColor DarkGray
+            break
+        }
+        'JOIN'
+        {
+            Write-Host "** Joined $($message.Arguments[0])" -ForegroundColor DarkGray
             break
         }
         'PING'
@@ -445,8 +461,8 @@ function InstinctBot ($message, $bot)
         }
         'ERR_NICKNAMEINUSE'
         {
-            $bot.NickName = $message.Arguments[0] + '_'
-            "/NICK $($bot.NickName)"
+            $bot.Nickname = $message.Arguments[0] + '_'
+            "/NICK $($bot.Nickname)"
             break
         }
         'RPL_ENDOFMOTD'
@@ -459,6 +475,7 @@ function InstinctBot ($message, $bot)
         }
         'ERROR'
         {
+            Write-Host "** Quitting: $($message.Arguments[0]) [$([DateTime]::Now.ToString())]" -ForegroundColor DarkGray
             exit
         }
     }
@@ -466,7 +483,7 @@ function InstinctBot ($message, $bot)
 
 filter Parse-OutgoingLine ($message, $bot)
 {
-    $reply = $_
+    $line = $_
     $target = $message.Target
     
     if (!$target)
@@ -474,40 +491,45 @@ filter Parse-OutgoingLine ($message, $bot)
         $target = $bot.Channels
     }
     
-    if ($reply -match '^/msg\s+([^\s]+)\s+(.*)')
+    if ($line -match '^/msg\s+([^\s]+)\s+(.*)')
     {
         $target = $Matches[1]
-        $reply = $Matches[2]
+        $line = $Matches[2]
     }
     
-    if ($reply -match '^/me\s+(.*)')
+    if ($line -match '^/me\s+(.*)')
     {
-        $reply = "$([char]1)ACTION $($Matches[1])$([char]1)"
+        $line = "$([char]1)ACTION $($Matches[1])$([char]1)"
     }
     
-    if (!$reply)
+    if (!$line)
     {
-        $reply = '-'
+        $line = ''
     }
     
-    if ($reply.StartsWith('/'))
+    if ($line.StartsWith('/'))
     {
-        $reply.Substring(1)
-    }
-    else
-    {
-        if (!$target)
-        {
-            throw "No target to send message!"
-        }
+        $line = $line.Substring(1)
         
-        "PRIVMSG $target :$reply"
+        # See if it was escaped.
+        if (!$line.StartsWith('/'))
+        {
+            return $line
+        }
     }
+    
+    if (!$target)
+    {
+        throw "No message target: $line"
+    }
+    
+    return "PRIVMSG $target :$line"
 }
 
 filter Write-Irc ($message, $bot)
 {
-    ([string]$_) -split '\n' |
+    $lines = ([string]$_ -split '\n')
+    $lines |
         Parse-OutgoingLine $message $bot |
         foreach {
             Write-Verbose "<< $_"
@@ -521,15 +543,21 @@ filter Parse-IncomingLine ($bot)
 {
     if ($_ -match "^(?:[:@]([^\s]+) )?([^\s]+)((?: ((?:[^:\s][^\s]* ?)*))?(?: ?:(.*))?)$")
     {
-        Write-Verbose "[$(Get-Date)] >> $_"
+        $message = "" | select Line, Prefix, Command, CommandCode, ArgumentString, Arguments, Text, Target, Time, SenderNickname, SenderUser, SenderHost
         
-        $message = "" | select Line, Prefix, Command, CommandCode, ArgumentString, Arguments, Text, Target
-        
+        $message.Time = (Get-Date)
         $message.Line = $_
         $message.Prefix = $Matches[1]
         $message.CommandCode = $Matches[2]
         $message.ArgumentString = $Matches[3].TrimStart()
         $message.Arguments = @(@($Matches[4] -split " ") + @($Matches[5]) | where { $_ })
+        
+        if ($message.Prefix -match "^(.*?)!(.*?)@(.*?)$")
+        {
+            $message.SenderNickname = $Matches[1]
+            $message.SenderUser = $Matches[2]
+            $message.SenderHost = $Matches[3]
+        }
         
         $message.Command = $RESPONSE_CODES[[int]($message.CommandCode -as [int])]
         if (!$message.Command)
@@ -541,10 +569,13 @@ filter Parse-IncomingLine ($bot)
         {
             $message.Target = $message.Arguments[0]
             $message.Text = $message.Arguments[1]
+            
+            $message.Text = $message.Text -replace "^$([char]1)ACTION (.*)$([char]1)$", '/me $1' # Reset actions.
+            $message.Text = $message.Text -replace "$([char]3)(?:1[0-5]|[0-9])(?:,(?:1[0-5]|[0-9]))?", '' # Remove colors.
+            $message.Text = $message.Text -replace "$([char]0x02)", '' # Remove bold.
+            $message.Text = $message.Text -replace "$([char]0x1D)", '' # Remove italics.
+            $message.Text = $message.Text -replace "$([char]0x1F)", '' # Remove underline.
         }
-        
-        Write-Verbose $message
-        Write-Verbose ($message.Arguments -join "|")
         
         return $message
     }
@@ -553,6 +584,7 @@ filter Parse-IncomingLine ($bot)
 function Run-Bot ($line, $bot, [switch]$fatal)
 {
     $message = $line | Parse-IncomingLine $bot
+    Write-Verbose ">> $message"
     
     try
     {
@@ -593,7 +625,9 @@ function Run-BotSession
 {
     try
     {
-        $bot = "" | select ServerName, ServerPort, Channels, TextEncoding, UserName, State, BotScript, Connection, NetworkStream, Reader, Writer, InteractiveDelay, InactiveDelay, Running, CurrentError, TimerInterval, StartTime, LastTick, NickName, Description
+        Write-Host $BANNER
+        
+        $bot = "" | select ServerName, ServerPort, Channels, TextEncoding, User, State, BotScript, Connection, NetworkStream, Reader, Writer, InteractiveDelay, InactiveDelay, Running, CurrentError, TimerInterval, StartTime, LastTick, Nickname, Description
         
         $bot.ServerName, $bot.ServerPort = $Server -split ":"
         if (!$bot.ServerPort)
@@ -603,7 +637,7 @@ function Run-BotSession
         
         $bot.Running = $false
         $bot.InactiveDelay = 1000
-        $bot.InteractiveDelay = 150
+        $bot.InteractiveDelay = 100
         $bot.TimerInterval = $TimerInterval
         $bot.BotScript = $BotScript
         $bot.State = $State
@@ -616,21 +650,23 @@ function Run-BotSession
         }
         
         $botScriptItem = gi $bot.BotScript
-        $bot.UserName = $botScriptItem.BaseName
+        $bot.User = $botScriptItem.BaseName
         $bot.BotScript = $botScriptItem.FullName
         
-        $bot.NickName = $bot.UserName
-        $bot.Description = "http://github.com/alejandro5042/ps-ircbot"
+        $bot.Nickname = $bot.User
+        $bot.Description = $DEFAULT_BOT_DESCRIPTION
+        
+        Write-Verbose "Original Bot: $bot"
         
         # Allow the bot to initialize the bot and/or massage parameters. Plus, if the script fails to compile or statically initialize (maybe because it doesn't like a parameter), we'll quit before we even connect.
         Run-Bot 'BOT_INIT' $bot -Fatal
         
-        Write-Verbose "Connecting to: $($bot.ServerName):$($bot.ServerPort)"
+        Write-Verbose "Initialized Bot: $bot"
+        
         $bot.Connection = New-Object Net.Sockets.TcpClient ($bot.ServerName, $bot.ServerPort)
         $bot.NetworkStream = $bot.Connection.GetStream()
         $bot.Reader = New-Object IO.StreamReader ($bot.NetworkStream, $bot.TextEncoding)
         $bot.Writer = New-Object IO.StreamWriter ($bot.NetworkStream, $bot.TextEncoding)
-        Write-Verbose "Connected!"
         
         $bot.StartTime = [DateTime]::Now
         $bot.Running = $true
@@ -695,12 +731,9 @@ function Run-BotSession
     {
         if ($bot.Connection)
         {
-            Write-Verbose "Closing connection..."
             $bot.Connection.Close()
             $bot.Connection.Dispose()
         }
-        
-        Write-Verbose "Done!"
     }
 }
 
