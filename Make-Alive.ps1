@@ -1,3 +1,6 @@
+# Examples:
+#   .\Make-Alive.ps1 { if ($message.Text) { "/pipe " + $message.Text } } server '#boringwhatever'
+
 [CmdLetBinding()]
 param
 (
@@ -28,7 +31,7 @@ $BANNER = "PowerShell IRC Bot Framework -- $SOURCE_URL"
 
 $DEFAULT_BOT_DESCRIPTION = "Based on -- $SOURCE_URL"
 
-$DEFAULT_BOT_USER = "ps-ircbot"
+$DEFAULT_BOT_USER = "bot"
 
 #################################################################
 
