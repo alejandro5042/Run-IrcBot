@@ -1,5 +1,8 @@
 # Examples:
 #   .\Make-Alive.ps1 { if ($message.Text) { "/pipe " + $message.Text } } server '#boringwhatever'
+#   .\Make-Alive.ps1 { if ($message.Command -eq 'JOIN') { "hey!"; "/quit" } } niirc '#boringwhatever' lollers
+#   .\Make-Alive.ps1 { if ($message.Text -match "lol") { ":)" } } niirc '#boringwhatever' lollers
+#   .\Make-Alive.ps1 { if ($message.Text -match "change(?:set)?\s+(\d+)*") { Get-TfsChangeset $Matches[1] | select ChangesetId, CreationDate, Owner, Comment } } niirc '#boringwhatever' tfschangeset
 
 [CmdLetBinding()]
 param
@@ -512,6 +515,12 @@ filter Parse-OutgoingLine ($message, $bot)
 {
     $line = $_
     $target = $message.Target
+    
+    # Don't output a white line.
+    if ($line.Trim().Length -eq 0)
+    {
+        return
+    }
     
     if (!$target)
     {
