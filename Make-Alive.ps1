@@ -1,25 +1,26 @@
+# TODO: FIX EXAMPLES
 # Examples:
 #   .\Make-Alive.ps1 { if ($message.Text) { "/pipe " + $message.Text } } server '#boringwhatever'
 #   .\Make-Alive.ps1 { if ($message.Command -eq 'JOIN') { "hey!"; "/quit" } } niirc '#boringwhatever' lollers
 #   .\Make-Alive.ps1 { if ($message.Text -match "lol") { ":)" } } niirc '#boringwhatever' lollers
 #   .\Make-Alive.ps1 { if ($message.Text -match "change(?:set)?\s+(\d+)*") { Get-TfsChangeset $Matches[1] | select ChangesetId, CreationDate, Owner, Comment } } niirc '#boringwhatever' tfschangeset
 #   .\Make-Alive.ps1 { if ($message.Text -match "awesome") { "super awesome!" } } niirc '#boringwhatever' miniawesomebot
+#   .\Make-Alive.ps1 miniawesomebot niirc boringwhatever { if ($message.Text -match "awesome") { "super awesome!" } }
 
 [CmdLetBinding()]
 param
 (
     [Parameter(Mandatory = $true)]
-    $BotScript,
+    $Name,
     
     [Parameter(Mandatory = $true)]
     [string]
     $Server,
     
-    [string]
+    [string[]]
     $Channels,
     
-    [string]
-    $User,
+    $BotScript,
     
     [switch]
     $Silent,
@@ -34,8 +35,6 @@ $SOURCE_URL = "http://github.com/alejandro5042/ps-ircbot"
 $BANNER = "PowerShell IRC Bot Framework -- $SOURCE_URL"
 
 $DEFAULT_BOT_DESCRIPTION = "Based on -- $SOURCE_URL"
-
-$DEFAULT_BOT_USER = "bot"
 
 #################################################################
 
@@ -212,7 +211,7 @@ $RESPONSE_CODES = @{
     # 204 Oper <class> <nick> 
     204 = 'RPL_TRACEOPERATOR';
 
-    # 205 User <class> <nick> 
+    # 205 Name <class> <nick> 
     205 = 'RPL_TRACEUSER';
 
     # 206 Serv <class> <int>S <int>C <server> <nick!user|*!*>@<host|server> V<protocol version> 
@@ -365,7 +364,7 @@ $RESPONSE_CODES = @{
     # 443 <user> <channel> :is already on channel 
     443 = 'ERR_USERONCHANNEL';
 
-    # 444 <user> :User not logged in 
+    # 444 <user> :Name not logged in 
     444 = 'ERR_NOLOGIN';
 
     # 445 :SUMMON has been disabled 
@@ -471,7 +470,7 @@ function InstinctBot ($message, $bot)
         'BOT_CONNECTED'
         {
             "/NICK $($bot.Nickname)"
-            "/USER $($bot.User) localhost $($bot.ServerName) :$($bot.Description)"
+            "/USER $($bot.Name) localhost $($bot.ServerName) :$($bot.Description)"
             break
         }
         'RPL_WELCOME'
@@ -671,7 +670,7 @@ function Main
     {
         Write-Banner $BANNER
         
-        $bot = "" | select ServerName, ServerPort, Channels, TextEncoding, User, State, BotScript, Connection, NetworkStream, Reader, Writer, InteractiveDelay, InactiveDelay, Running, CurrentError, TimerInterval, StartTime, LastTick, Nickname, Description, NicknameCounter
+        $bot = "" | select ServerName, ServerPort, Channels, TextEncoding, Name, State, BotScript, Connection, NetworkStream, Reader, Writer, InteractiveDelay, InactiveDelay, Running, CurrentError, TimerInterval, StartTime, LastTick, Nickname, Description, NicknameCounter
         
         $bot.ServerName, $bot.ServerPort = $Server -split ":"
         if (!$bot.ServerPort)
@@ -679,40 +678,48 @@ function Main
             $bot.ServerPort = 6667
         }
         
+        if (Test-Path $Name)
+        {
+            $bot.Name = (gi $Name).BaseName
+        }
+        elseif ($Name.BaseName)
+        {
+            $bot.Name = $Name.BaseName
+        }
+        else
+        {
+            $bot.Name = $Name
+        }
+        
+        $bot.Nickname = $bot.Name
         $bot.NicknameCounter = 1
+        $bot.Description = $DEFAULT_BOT_DESCRIPTION
         $bot.Running = $false
         $bot.InactiveDelay = 1000
         $bot.InteractiveDelay = 100
         $bot.TimerInterval = 0
         $bot.BotScript = $BotScript
         $bot.State = $State
-        $bot.Channels = $Channels
+        $bot.Channels = ($Channels | foreach { "#$_" }) -join ','
         $bot.TextEncoding = [Text.Encoding]::ASCII
         
-        if ($bot.BotScript -isnot [ScriptBlock])
+        if (!$bot.BotScript)
         {
-            if (!(Test-Path $bot.BotScript))
+            $botScriptName = $Name
+            
+            if (!(Test-Path $botScriptName))
             {
-                $bot.BotScript = $bot.BotScript + '.ps1'
+                $botScriptName = $botScriptName + '.ps1'
             }
             
-            $botScriptItem = gi $bot.BotScript
-            $bot.User = $botScriptItem.BaseName
+            if (!(Test-Path $botScriptName))
+            {
+                throw "Cannot find script: $botScriptName"
+            }
+            
+            $botScriptItem = gi $botScriptName
             $bot.BotScript = $botScriptItem.FullName
         }
-        else
-        {
-            $bot.User = $DEFAULT_BOT_USER
-        }
-        
-        # Override user if specified.
-        if ($User)
-        {
-            $bot.User = $User
-        }
-        
-        $bot.Nickname = $bot.User
-        $bot.Description = $DEFAULT_BOT_DESCRIPTION
         
         Write-Verbose "Original Bot: $bot"
         
@@ -796,9 +803,9 @@ function Main
         {
             $bot.Connection.Close()
             $bot.Connection.Dispose()
+            
+            Write-BotHost "Disconnected`n"
         }
-        
-        Write-BotHost "Finished`n"
     }
 }
 
