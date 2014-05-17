@@ -550,7 +550,7 @@ filter Parse-IncomingLine ($bot)
     }
 }
 
-function Run-Bot ($line, $bot)
+function Run-Bot ($line, $bot, [switch]$fatal)
 {
     $message = $line | Parse-IncomingLine $bot
     try
@@ -568,7 +568,15 @@ function Run-Bot ($line, $bot)
     }
     catch
     {
-        Write-Error -ErrorRecord $_
+        if ($fatal)
+        {
+            throw
+        }
+        else
+        {
+            Write-Error -ErrorRecord $_
+        }
+        
         $bot.LastError = $_
         Run-Bot 'BOT_ERROR' $bot
     }
@@ -607,7 +615,8 @@ function Run-BotSession
         $bot.NickName = $bot.UserName
         $bot.Description = "http://github.com/alejandro5042/ps-ircbot"
         
-        Run-Bot 'BOT_STATIC_INIT' $bot
+        # Allow the bot to initialize the bot and/or massage parameters. Plus, if the script fails to compile, we'll know immediately before we connect.
+        Run-Bot 'BOT_STATIC_INIT' $bot -Fatal
         
         Write-Verbose "Connecting to: $($bot.ServerName):$($bot.ServerPort)"
         $bot.Connection = New-Object Net.Sockets.TcpClient ($bot.ServerName, $bot.ServerPort)
