@@ -478,12 +478,12 @@ function InstinctBot ($message, $bot)
         }
         'RPL_WELCOME'
         {
-            Write-BotHost "Connected -- $($message.ArgumentString)"
+            Write-BotHost "Connected: $($message.ArgumentString)"
             break
         }
         'JOIN'
         {
-            Write-BotHost "Joined -- $($message.Arguments[0])"
+            Write-BotHost "Joined: $($message.Arguments[0])"
             break
         }
         'PING'
@@ -505,7 +505,7 @@ function InstinctBot ($message, $bot)
         }
         'ERROR'
         {
-            Write-BotHost "Quitting -- $($message.Arguments[0]) [$([DateTime]::Now.ToString())]"
+            Write-BotHost "Quitting: $($message.Arguments[0])"
             $bot.Running = $false
         }
     }
@@ -795,7 +795,7 @@ function Main
             $bot.Connection.Close()
             $bot.Connection.Dispose()
             
-            Write-BotHost "Disconnected`n"
+            Write-BotHost "Disconnected [$([DateTime]::Now.ToString())]`n"
         }
     }
 }
