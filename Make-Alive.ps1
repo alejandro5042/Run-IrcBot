@@ -788,7 +788,7 @@ function Main
             $bot.Connection.Dispose()
         }
         
-        Write-BotHost "Finished"
+        Write-BotHost "Finished`n"
     }
 }
 
