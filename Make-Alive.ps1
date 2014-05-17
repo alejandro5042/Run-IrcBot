@@ -512,6 +512,7 @@ function InstinctBot ($message, $bot)
         {
             Write-BotHost "Quitting: $($message.Arguments[0])"
             $bot.Running = $false
+            break
         }
     }
 }
