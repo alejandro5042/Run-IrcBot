@@ -3,6 +3,7 @@
 #   .\Make-Alive.ps1 { if ($message.Command -eq 'JOIN') { "hey!"; "/quit" } } niirc '#boringwhatever' lollers
 #   .\Make-Alive.ps1 { if ($message.Text -match "lol") { ":)" } } niirc '#boringwhatever' lollers
 #   .\Make-Alive.ps1 { if ($message.Text -match "change(?:set)?\s+(\d+)*") { Get-TfsChangeset $Matches[1] | select ChangesetId, CreationDate, Owner, Comment } } niirc '#boringwhatever' tfschangeset
+#   .\Make-Alive.ps1 { if ($message.Text -match "awesome") { "super awesome!" } } niirc '#boringwhatever' miniawesomebot
 
 [CmdLetBinding()]
 param
