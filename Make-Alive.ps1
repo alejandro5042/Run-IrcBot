@@ -510,38 +510,29 @@ filter Write-Irc ($message, $bot)
 
 filter Parse-IncomingLine ($bot)
 {
-    switch -regex ($_)
+    if ($_ -match "^(?:[:@]([^\s]+) )?([^\s]+)((?: ((?:[^:\s][^\s]* ?)*))?(?: ?:(.*))?)$")
     {
-        "^(?::([^\s]*)\s+)?([^\s]+)(?:\s*(.*))?" {
-            Write-Verbose "[$(Get-Date)] >> $_"
-            
-            $message = "" | select Line, Prefix, Command, CommandCode, ArgumentString, Arguments, Text
-            
-            $message.Line = $_
-            $message.Prefix = $Matches[1]
-            $message.CommandCode = $Matches[2]
-            $message.ArgumentString = $Matches[3]
-            
-            $message.Command = $RESPONSE_CODES[$message.CommandCode]
-            if (!$message.Command)
-            {
-                $message.Command = $message.CommandCode
-            }
-            
-            $singleWordArguments, $rest = ("dummy " + $message.ArgumentString) -split " :"
-            $singleWordArguments = $singleWordArguments -split " "
-            $message.Arguments = @(($singleWordArguments + $rest) | select -skip 1 | foreach { $_.Trim() })
-            #write-verbose ($message.Arguments -join "|")
-            
-            $message.Text = ""
-            
-            return $message
-        }
-        default
+        Write-Verbose "[$(Get-Date)] >> $_"
+        
+        $message = "" | select Line, Prefix, Command, CommandCode, ArgumentString, Arguments, Text
+        
+        $message.Line = $_
+        $message.Prefix = $Matches[1]
+        $message.CommandCode = $Matches[2]
+        $message.ArgumentString = $Matches[3].TrimStart()
+        $message.Arguments = (@($Matches[4] -split " ") + @($Matches[5])) | where { $_ }
+        
+        $message.Command = $RESPONSE_CODES[$message.CommandCode]
+        if (!$message.Command)
         {
-            Write-Warning "Unknown line >> $line"
-            break
+            $message.Command = $message.CommandCode
         }
+        
+        # write-verbose ($message.Arguments -join "|")
+        
+        $message.Text = ""
+        
+        return $message
     }
 }
 
