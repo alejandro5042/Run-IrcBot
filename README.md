@@ -25,10 +25,10 @@ Command Line Usage
 
 Position | Option | Value
 :---: | --- | ---
-1 | **[-Name]** *name* | **Required.** The user and nickname of your bot. If -BotScript is not provided, then this is also the name of the script. If you pass a file, the user and nickname used is the basename of the file (no path, no extension).
+1 | **[-Name]** *name* | **Required.** The user and nickname of your bot. If **-BotScript** is not provided, then this is also the name of the script. If you pass a file, the user and nickname used is the basename of the file (no path, no extension).
 2 | **[-Server]** *server[:port]* | **Required.** The server to connect to with optional port. The default port is 6667 (defacto standard).
 3 | **[-Channel]** *chan1,chan2,...* | **Required.** A comma-delimited list of channels your bot will join on startup, without leading `#`.
-4 | **[-BotScript]** *script* | An invokable script that represents your bot. This can be the name of the script or a script block. By default, the -Name is used.
+4 | **[-BotScript]** *script* | An invokable script that represents your bot. This can be the name of the script or a script block. By default, the **-Name** is used.
 * | **-State** *object* | Initial state to pass into `$Bot.State`. The default state is an empty hash.
 * | **-Silent** | Disables default host output.
 * | **-Verbose** | Enables verbose output for the IRC bot.
@@ -55,7 +55,7 @@ Save this as `hellobot.ps1`. To test your bot, connect to your IRC server and jo
 
 ### Live Editing
 
-You can edit your bot on the fly. You do not need to restart your server! If you make a mistake, the bot server will give you plenty of error message details for you to diagnose the problem. Using the *-Verbose* will also show you all the messages your bot is receiving--very helpful during development!
+You can edit your bot on the fly. You do not need to restart your server! If you make a mistake, the bot server will give you plenty of error message details for you to diagnose the problem. Using the **-Verbose** will also show you all the messages your bot is receiving--very helpful during development!
 
 So let's add another condition:
 
@@ -229,7 +229,7 @@ switch ($Message.Command)
 
 ### Command-Line Bots
 
-I thought it would be fun to experiment with command-line bots. You can specify a command-line bot with -BotScript (the fourth parameter). This simple bot tries to match any string that contains a TFS changeset number and replies with its details.
+I thought it would be fun to experiment with command-line bots. You can specify a command-line bot with **-BotScript** (the default fourth parameter). This simple bot tries to match any string that contains a TFS changeset number and replies with its details.
 
 ```PowerShell
 .\Run-IrcBot.ps1 tfsbot ircserver channel { if ($Message.Text -match "change(?:set)?\s+(\d+)*") { Get-TfsChangeset $Matches[1] | select ChangesetId, CreationDate, Owner, Comment } }
@@ -251,7 +251,7 @@ You can also use the command-line option to use another script or pass arguments
 Specification
 -------------
 
-Using the *-Verbose* option will help you understand how these objects work and the behaviors of each of the commands.
+Using the **-Verbose** option will help you understand how these objects work and the behaviors of each of the commands.
 
 ### The `$Message` Object
 
@@ -259,7 +259,7 @@ Name | Sample Value | Notes
 --- | --- | ---
 $Message.**ArgumentString** | #channel :my message
 $Message.**Arguments**      | {#channel, my message}
-$Message.**Command**        | PRIVMSG | Attempted textual representation of the CommandCode.
+$Message.**Command**        | PRIVMSG | Attempted textual representation of `$Bot.CommandCode`.
 $Message.**CommandCode**    | PRIVMSG | The actual command in the IRC line.
 $Message.**Line**           | nick!~user@machine.com PRIVMSG #channel | The full line from the IRC server.
 $Message.**Prefix**         | nick!~user@machine.com
@@ -267,7 +267,7 @@ $Message.**SenderHost**     | machine.com
 $Message.**SenderName**     | ~user
 $Message.**SenderNickname** | nick
 $Message.**Target**         | #channel
-$Message.**Text**           | my message | Message text if it is a PRIVMSG. The text is stripped of any known formatting. If it is a `/me` message, a `/me` is prefixed.
+$Message.**Text**           | my message | Message text if it is a PRIVMSG, otherwise `$null`. The text is stripped of any known formatting. If it is a `/me` message, a `/me` is prefixed.
 $Message.**Time**           | 5/21/2014 3:20:32 PM | Message receive time.
 
 ### The `$Bot` Object
