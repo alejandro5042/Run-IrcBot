@@ -237,7 +237,7 @@ Specification
 ### The `$Message` Object
 
 Name | Sample Value | Notes
---- | ---
+--- | --- | ---
 $Message.ArgumentString | #channel :my message
 $Message.Arguments      | {#channel, my message}
 $Message.Command        | PRIVMSG | Attempted textual representation of the CommandCode.
@@ -253,8 +253,8 @@ $Message.Time           | 5/21/2014 3:20:32 PM | Received time.
 
 ### The `$Bot` Object
 
-Name | Sample Value
---- | ---
+Name | Sample Value | Notes
+--- | --- | ---
 $Bot.BotScript        | C:\bots\awesomebot.ps1
 $Bot.Channels         | #channel
 $Bot.Connection       | System.Net.Sockets.TcpClient | Do not mess with this!
