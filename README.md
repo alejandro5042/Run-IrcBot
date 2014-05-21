@@ -18,7 +18,7 @@ Run this command to download a local copy:
 iwr 'https://raw.githubusercontent.com/alejandro5042/ps-ircbot/master/Make-Alive.ps1' -OutFile Make-Alive.ps1
 ```
 
-You can also sync this repository using the `git` tools or the awesome GitHub Client ([Windows](https://windows.github.com/), [Mac](https://mac.github.com/)).
+You can also sync this repository using the `git` tools or the awesome GitHub Client ([Windows](https://windows.github.com/), [Mac](https://mac.github.com/)). Contributions are welcomed.
 
 Command Line Usage
 ------------------
@@ -47,7 +47,7 @@ if ($Message.Text -match "hi")
 }
 ```
 
-Save this as `hellobot.ps1`. Now connect to your IRC server and join the `hellobottest` channel. Now you can test your bot!
+Save this as `hellobot.ps1`. To test your bot, connect to your IRC server and join the `hellobottest` channel. Now you can run your bot!
 
 ```PowerShell
 .\Make-Alive.ps1 hellobot ircserver hellobottest
