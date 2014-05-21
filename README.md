@@ -15,7 +15,7 @@ Installing
 Run this command to download a local copy:
 
 ```PowerShell
-Invoke-WebRequest 'https://raw.githubusercontent.com/alejandro5042/ps-ircbot/master/Run-IrcBot.ps1' -OutFile Run-IrcBot.ps1
+Invoke-WebRequest 'https://raw.githubusercontent.com/alejandro5042/Run-IrcBot/master/Run-IrcBot.ps1' -OutFile Run-IrcBot.ps1
 ```
 
 You can also sync this repository using the `git` tools or the awesome GitHub Client ([Windows](https://windows.github.com/), [Mac](https://mac.github.com/)). Contributions are welcomed.
