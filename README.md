@@ -98,7 +98,7 @@ switch -regex ($Message.Text)
         switch -regex ($Matches[1])
         {
             "hi"   { "hello" }
-            "lol"   { "glad you're happy!" }
+            "lol"  { "glad you're happy!" }
             "bye"  { "/quit :bye guys" }
         }
     }
@@ -238,9 +238,9 @@ Specification
 
 Name | Sample Value | Notes
 --- | --- | ---
-$Message.ArgumentString | #channel :my message
-$Message.Arguments      | {#channel, my message}
-$Message.Command        | PRIVMSG | Attempted textual representation of the CommandCode.
+$Message.**ArgumentString** | #channel :my message
+$Message.**Arguments**      | {#channel, my message}
+$Message.**Command**        | PRIVMSG | Attempted textual representation of the CommandCode.
 $Message.CommandCode    | PRIVMSG | The actual command in the IRC line.
 $Message.Line           | nick!~user@machine.com PRIVMSG #channel | The full line from the IRC server.
 $Message.Prefix         | nick!~user@machine.com
@@ -281,12 +281,11 @@ $Bot.Writer           | System.IO.StreamWriter | Do not mess with this!
 
 Name | Action
 --- | ---
-/msg *target* *what* | Like the IRC client command, Sends *what* to *target*. *what* can also be a `/me`.
-/me *action* | Like the IRC client command, specifies an *action*.
-/pipe *value* | Outputs the string *value* to the PowerShell pipeline (not IRC).
-//*anything* | Escapes the `/` and outputs `/anything`.
-
-*anything else*
+**/msg** *target* *what* | Like the IRC client command, Sends *what* to *target*. *what* can also be a `/me`.
+**/me** *action* | Like the IRC client command, specifies an *action*.
+**/pipe** *value* | Outputs the string *value* to the PowerShell pipeline (not IRC).
+**//** *anything* | Escapes the `/` and outputs `/ anything`.
+*anything else* | Sends a PRIVMSG to `$Message.Target`.
 
 ### Commands
 
