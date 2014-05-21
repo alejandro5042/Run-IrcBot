@@ -300,7 +300,7 @@ For a list of IRC commands, see [Wikipedia](https://en.wikipedia.org/wiki/List_o
 
 Bot server specific commands:
 
-Command | Description
+`$Message.Command` | Description
 --- | ---
 **BOT_INIT** | Run before connecting to the server. A good time to initialize variables, massage the `$Bot` variable, etc.
 **BOT_CONNECTED** | Run after a successful connection to the server. Do not send messages at this point; instead wait for the end of the welcome message by command `RPL_ENDOFMOTD`.
@@ -320,17 +320,31 @@ You can also refer to these resources:
 
 ### Default Behavior
 
-#### Nickname Conflicts
+These default behaviors occur before your bot is run with the same command. You cannot override these behaviors.
+
+#### BOT_CONNECTED
+
+Sends the `NICK` and `USER` commands.
+
+#### RPL_ENDOFMOTD
+
+Sends the `JOIN` command with the initial channel list provided.
+
+#### PING
+
+The bot will respond to `PING` messages. It is also important not to take more than ~20 seconds to complete a command or your IRC bot may timeout if a `PING` is active. I don't priority sort incoming messages, so you may timeout while processing a long string of messages if you take too long. The bot server can probably get DOS'ed pretty easily so beware.
+
+#### ERR_ERRONEUSNICKNAME (User Conflict)
+
+The bot will quit if the user name is already in use.
+
+#### ERR_NICKNAMEINUSE (Nickname Conflict)
 
 The bot will add a number (`$Bot.NicknameCounter`) to the end of the name provided and try again. It will increment this number until there is no conflict. The `$Bot.Nickname` contains the final nickname.
 
-#### ERROR Command
+#### ERROR
 
 The bot will output the error message and quit, still running at least `BOT_END`.
-
-#### PING Command
-
-The bot will respond to `PING` messages. It is also important not to take more than ~20 seconds to complete a command or your IRC bot may timeout if a `PING` is active. I don't priority sort incoming messages, so you may timeout while processing a long string of messages if you take too long. The bot server can probably get DOS'ed pretty easily so beware.
 
 FAQ
 ---
