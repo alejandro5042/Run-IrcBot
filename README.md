@@ -7,6 +7,9 @@ PowerShell IRC Bots
 .\Make-Alive.ps1 name server[:port] chan1,chan2,chan3
 ```
 
+Command Line Usage
+------------------
+
 Position | Option | Value
 --- | :---: | ---
 1 | **[-Name]** *name* | **Required.** The user and nickname of your bot. If -BotScript is not provided, then this is also the name of the script. If you pass a file, the user and nickname used is the basename of the file (no path, no extension).
