@@ -39,7 +39,7 @@ if ($Message.Text -match "hi")
 Save this as `hellobot.ps1`. Now connect to your IRC server and join the `hellobottest` channel. Now you can test your bot!
 
 ```PowerShell
-.\Make-Alive hellobot ircserver hellobottest
+.\Make-Alive.ps1 hellobot ircserver hellobottest
 ```
 
 ### Live Editing
@@ -236,11 +236,46 @@ Specification
 
 ### The `$Message` Object
 
-asdf
+Name | Sample Value | Notes
+--- | ---
+$Message.ArgumentString | #channel :my message
+$Message.Arguments      | {#channel, my message}
+$Message.Command        | PRIVMSG | Attempted textual representation of the CommandCode.
+$Message.CommandCode    | PRIVMSG | The actual command in the IRC line.
+$Message.Line           | nick!~user@machine.com PRIVMSG #channel | The full line from the IRC server.
+$Message.Prefix         | nick!~user@machine.com
+$Message.SenderHost     | machine.com
+$Message.SenderName     | ~user
+$Message.SenderNickname | nick
+$Message.Target         | #channel
+$Message.Text           | throw
+$Message.Time           | 5/21/2014 3:20:32 PM | Received time.
 
 ### The `$Bot` Object
 
-asdf
+Name | Sample Value
+--- | ---
+$Bot.BotScript        | C:\bots\awesomebot.ps1
+$Bot.Channels         | #channel
+$Bot.Connection       | System.Net.Sockets.TcpClient | Do not mess with this!
+$Bot.CurrentError     | awesome
+$Bot.Description      | Bot description.
+$Bot.InactiveDelay    | 1000 | Milliseconds to wait between reads/writes when none have happened recently.
+$Bot.InteractiveDelay | 100 | Milliseconds to wait between reads/writes when active.
+$Bot.LastTick         | 5/21/2014 3:20:32 PM
+$Bot.Name             | awesomebot | The original name of the bot; also the user name.
+$Bot.NetworkStream    | System.Net.Sockets.NetworkStream | Do not mess with this!
+$Bot.Nickname         | awesomebot2 | The nickname of the bot after initial connection and conflict resolution.
+$Bot.NicknameCounter  | 2 | How many times we attempted to find a nickname.
+$Bot.Reader           | System.IO.StreamReader | Do not mess with this!
+$Bot.Running          | True | Set to `$False` to quit immediately.
+$Bot.ServerName       | ircserver
+$Bot.ServerPort       | 6667
+$Bot.StartTime        | 5/21/2014 3:11:10 PM
+$Bot.State            | {}
+$Bot.TextEncoding     | System.Text.ASCIIEncoding | Text encoding used to communicate with server.
+$Bot.TimerInterval    | 0 | Milliseconds between `BOT_TICK` commands. Set to nonzero to activate timer.
+$Bot.Writer           | System.IO.StreamWriter | Do not mess with this!
 
 ### Output Messages
 
