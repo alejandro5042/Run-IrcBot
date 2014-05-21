@@ -241,41 +241,41 @@ Name | Sample Value | Notes
 $Message.**ArgumentString** | #channel :my message
 $Message.**Arguments**      | {#channel, my message}
 $Message.**Command**        | PRIVMSG | Attempted textual representation of the CommandCode.
-$Message.CommandCode    | PRIVMSG | The actual command in the IRC line.
-$Message.Line           | nick!~user@machine.com PRIVMSG #channel | The full line from the IRC server.
-$Message.Prefix         | nick!~user@machine.com
-$Message.SenderHost     | machine.com
-$Message.SenderName     | ~user
-$Message.SenderNickname | nick
-$Message.Target         | #channel
-$Message.Text           | my message | Message text if it is a PRIVMSG. The text is stripped of any known formatting. If it is a `/me` message, a `/me` is prefixed.
-$Message.Time           | 5/21/2014 3:20:32 PM | Message receive time.
+$Message.**CommandCode**    | PRIVMSG | The actual command in the IRC line.
+$Message.**Line**           | nick!~user@machine.com PRIVMSG #channel | The full line from the IRC server.
+$Message.**Prefix**         | nick!~user@machine.com
+$Message.**SenderHost**     | machine.com
+$Message.**SenderName**     | ~user
+$Message.**SenderNickname** | nick
+$Message.**Target**         | #channel
+$Message.**Text**           | my message | Message text if it is a PRIVMSG. The text is stripped of any known formatting. If it is a `/me` message, a `/me` is prefixed.
+$Message.**Time**           | 5/21/2014 3:20:32 PM | Message receive time.
 
 ### The `$Bot` Object
 
 Name | Sample Value | Notes
 --- | --- | ---
-$Bot.BotScript        | C:\bots\awesomebot.ps1
-$Bot.Channels         | #channel | List of chnanels passed in by the command-line.
-$Bot.Connection       | System.Net.Sockets.TcpClient | Do not mess with this!
-$Bot.CurrentError     | | Diagnose an error thrown in the previous run of your bot. Set before running the `BOT_ERROR` command.
-$Bot.Description      | Bot description.
-$Bot.InactiveDelay    | 1000 | Milliseconds to wait between reads/writes when none have happened recently.
-$Bot.InteractiveDelay | 100 | Milliseconds to wait between reads/writes when active.
-$Bot.LastTick         | 5/21/2014 3:20:32 PM | The last time we ticked. Only valid when TimerInterval is nonzero.
-$Bot.Name             | awesomebot | The original name of the bot; also the user name.
-$Bot.NetworkStream    | System.Net.Sockets.NetworkStream | Do not mess with this!
-$Bot.Nickname         | awesomebot2 | The nickname of the bot after initial connection and conflict resolution.
-$Bot.NicknameCounter  | 2 | How many times we attempted to find a nickname.
-$Bot.Reader           | System.IO.StreamReader | Do not mess with this!
-$Bot.Running          | True | Set to `$False` to quit immediately.
-$Bot.ServerName       | ircserver
-$Bot.ServerPort       | 6667
-$Bot.StartTime        | 5/21/2014 3:11:10 PM
-$Bot.State            | {}
-$Bot.TextEncoding     | System.Text.ASCIIEncoding | Text encoding used to communicate with server.
-$Bot.TimerInterval    | 0 | Milliseconds between `BOT_TICK` commands. Set to nonzero to activate timer.
-$Bot.Writer           | System.IO.StreamWriter | Do not mess with this!
+$Bot.**BotScript**        | C:\bots\awesomebot.ps1
+$Bot.**Channels**         | #channel | List of chnanels passed in by the command-line.
+$Bot.**Connection**       | System.Net.Sockets.TcpClient | Do not mess with this!
+$Bot.**CurrentError**     | | Diagnose an error thrown in the previous run of your bot. Set before running the `BOT_ERROR` command.
+$Bot.**Description**      | Bot description.
+$Bot.**InactiveDelay**    | 1000 | Milliseconds to wait between reads/writes when none have happened recently.
+$Bot.**InteractiveDelay** | 100 | Milliseconds to wait between reads/writes when active.
+$Bot.**LastTick**         | 5/21/2014 3:20:32 PM | The last time we ticked. Only valid when TimerInterval is nonzero.
+$Bot.**Name**             | awesomebot | The original name of the bot; also the user name.
+$Bot.**NetworkStream**    | System.Net.Sockets.NetworkStream | Do not mess with this!
+$Bot.**Nickname**         | awesomebot2 | The nickname of the bot after initial connection and conflict resolution.
+$Bot.**NicknameCounter**  | 2 | How many times we attempted to find a nickname.
+$Bot.**Reader**           | System.IO.StreamReader | Do not mess with this!
+$Bot.**Running**          | True | Set to `$False` to quit immediately.
+$Bot.**ServerName**       | ircserver
+$Bot.**ServerPort**       | 6667
+$Bot.**StartTime**        | 5/21/2014 3:11:10 PM
+$Bot.**State**            | {}
+$Bot.**TextEncoding**     | System.Text.ASCIIEncoding | Text encoding used to communicate with server.
+$Bot.**TimerInterval**    | 0 | Milliseconds between `BOT_TICK` commands. Set to nonzero to activate timer.
+$Bot.**Writer**           | System.IO.StreamWriter | Do not mess with this!
 
 ### Output Messages
 
@@ -284,17 +284,53 @@ Name | Action
 **/msg** *target* *what* | Like the IRC client command, Sends *what* to *target*. *what* can also be a `/me`.
 **/me** *action* | Like the IRC client command, specifies an *action*.
 **/pipe** *value* | Outputs the string *value* to the PowerShell pipeline (not IRC).
+**/cmd** *line* | Sends the `cmd` followed by `line`. Be sure to follow the IRC protocol.
 **//** *anything* | Escapes the `/` and outputs `/ anything`.
 *anything else* | Sends a PRIVMSG to `$Message.Target`.
 
+*Note:* IRC command arguments are delimited by spaces. To send text, prefix with `:`. For example, the `/quit` message takes a single argument for the quit message. Without a leading `:`, it will take the last argument--typically the last word of your message. The right way to do a `/quit` message is like this:
+
+```
+/quit :my quit message
+```
+
+For a list of IRC commands, see [Wikipedia](https://en.wikipedia.org/wiki/List_of_Internet_Relay_Chat_commands).
+
 ### Commands
 
-A list of commands is
+Bot server specific commands:
+
+Command | Description
+--- | ---
+**BOT_INIT** | Run before connecting to the server.
+**BOT_CONNECTED** | Run after a successful connection to the server.
+**BOT_TICK** | Run when a bot tick occurs, to the resolution of `$Bot.InactiveDelay`; Not precise. The interval is specified by `$Bot.TimerInterval` and is only active when it is nonzero.
+**BOT_ERROR** | Run when a non-parse error occurs. See `$Bot.CurrentError`.
+**BOT_FATAL_ERROR** | Run when a fatal error occurs and the bot must exit. See `$Bot.CurrentError`.
+**BOT_DISCONNECTING** | Run right before disconnecting from the server *and* if the connection is still active. You can still send messages.
+**BOT_END** | The last command that gets run. The connection may still be active. This command will always run if `BOT_INIT` ran successfully.
+
+For a list parsed IRC commands, see the source code for `.\Make-Alive.ps1`. The bot server will only translate the names of these commands; the original is left in `$Message.CommandCode`.
+
+You can also refer to these resources:
+
+- [RFC 1459: Internet Relay Chat Protocol](https://tools.ietf.org/html/rfc1459)
+- [RFC 2812: Internet Relay Chat: Client Protocol](https://tools.ietf.org/html/rfc2812)
+- [Helpful document of known responses.](https://www.alien.net.au/irc/irc2numerics.html)
 
 ### Default Behavior
 
-Nickname conflicts
+#### Nickname Conflicts
 
+The bot will add a number (`$Bot.NicknameCounter`) to the end of the name provided and try again. It will increment this number until there is no conflict. The `$Bot.Nickname` contains the final nickname.
+
+#### ERROR Command
+
+The bot will output the error message and quit, still running at least `BOT_END`.
+
+#### PING Command
+
+The bot will respond to `PING` messages. It is also important not to take more than ~20 seconds to complete a command or your IRC bot may timeout if a `PING` is active. I don't priority sort incoming messages, so you may timeout while processing a long string of messages if you take too long. The bot server can probably get DOS'ed pretty easily so beware.
 
 FAQ
 ---
@@ -305,4 +341,4 @@ Yes, they do! But I wanted the ability to reload the bot script at any time. If 
 
 #### Why is your script using blocking I/O? Why is it single-threaded?
 
-Because it was easier :) And hitting `Ctrl+C` still worked. Since PowerShell is already single-threaded without tricks, I didn't want to overcomplicate things. It is also important not to take more than ~20 seconds to complete a command or your IRC bot may timeout if a PING is active. I don't priority sort incoming messages, so you may timeout while processing a long string of messages if you take too long. The bot server can probably get DOS'ed pretty easily so beware.
+Because it was easier :) And hitting `Ctrl+C` still worked. Since PowerShell is already single-threaded without tricks, I didn't want to overcomplicate things.
