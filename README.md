@@ -235,7 +235,7 @@ I thought it would be fun to experiment with command-line bots. You can specify 
 .\Run-IrcBot.ps1 tfsbot ircserver channel { if ($Message.Text -match "change(?:set)?\s+(\d+)*") { Get-TfsChangeset $Matches[1] | select ChangesetId, CreationDate, Owner, Comment } }
 ```
 
-This bot redirects any messages to pipeline output, and greps for any messages containing `amazing`.
+This bot redirects any messages to the pipeline. The `sls` command filters for messages containing `amazing`.
 
 ```PowerShell
 .\Run-IrcBot.ps1 monitor ircserver channel { if ($message.Text) { "/pipe " + $message.Text } } -Silent | sls amazing
