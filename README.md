@@ -1,10 +1,10 @@
 IRC Bots for PowerShell
 =======================
 
-`Make-Alive.ps1` is an easy way to make IRC bots using PowerShell. If your bot is script-based, your bot can be live-edited at runtime. Not designed for heavy usage.
+`Run-IrcBot.ps1` is an easy way to make IRC bots using PowerShell. If your bot is script-based, your bot can be live-edited at runtime. Not designed for heavy usage.
 
 ```
-.\Make-Alive.ps1 name server[:port] chan1,chan2,chan3
+.\Run-IrcBot.ps1 name server[:port] chan1,chan2,chan3
 ```
 
 Hit `Ctrl+C` to quit your bot.
@@ -15,7 +15,7 @@ Installing
 Run this command to download a local copy:
 
 ```PowerShell
-iwr 'https://raw.githubusercontent.com/alejandro5042/ps-ircbot/master/Make-Alive.ps1' -OutFile Make-Alive.ps1
+iwr 'https://raw.githubusercontent.com/alejandro5042/ps-ircbot/master/Run-IrcBot.ps1' -OutFile Run-IrcBot.ps1
 ```
 
 You can also sync this repository using the `git` tools or the awesome GitHub Client ([Windows](https://windows.github.com/), [Mac](https://mac.github.com/)). Contributions are welcomed.
@@ -50,7 +50,7 @@ if ($Message.Text -match "hi")
 Save this as `hellobot.ps1`. To test your bot, connect to your IRC server and join the `hellobottest` channel. Now you can run your bot!
 
 ```PowerShell
-.\Make-Alive.ps1 hellobot ircserver hellobottest
+.\Run-IrcBot.ps1 hellobot ircserver hellobottest
 ```
 
 ### Live Editing
@@ -232,20 +232,20 @@ switch ($Message.Command)
 I thought it would be fun to experiment with command-line bots. You can specify a command-line bot with -BotScript (the fourth parameter). This simple bot tries to match any string that contains a TFS changeset number and replies with its details.
 
 ```PowerShell
-.\Make-Alive.ps1 tfsbot ircserver channel { if ($Message.Text -match "change(?:set)?\s+(\d+)*") { Get-TfsChangeset $Matches[1] | select ChangesetId, CreationDate, Owner, Comment } }
+.\Run-IrcBot.ps1 tfsbot ircserver channel { if ($Message.Text -match "change(?:set)?\s+(\d+)*") { Get-TfsChangeset $Matches[1] | select ChangesetId, CreationDate, Owner, Comment } }
 ```
 
 This bot redirects any messages to pipeline output, and greps for any messages containing `amazing`.
 
 ```PowerShell
-.\Make-Alive.ps1 monitor ircserver channel { if ($message.Text) { "/pipe " + $message.Text } } -Silent | sls amazing
+.\Run-IrcBot.ps1 monitor ircserver channel { if ($message.Text) { "/pipe " + $message.Text } } -Silent | sls amazing
 ```
 
 You can also use the command-line option to use another script or pass arguments to your script.
 
 ```PowerShell
-.\Make-Alive.ps1 awesomebot ircserver channel superbot
-.\Make-Alive.ps1 awesomebot ircserver channel { .\superbot.ps1 $Message $Bot -DoAwesomeStuff }
+.\Run-IrcBot.ps1 awesomebot ircserver channel superbot
+.\Run-IrcBot.ps1 awesomebot ircserver channel { .\superbot.ps1 $Message $Bot -DoAwesomeStuff }
 ```
 
 Specification
@@ -327,7 +327,7 @@ Bot server specific commands:
 **BOT_DISCONNECTING** | Run right before disconnecting from the server *and* if the connection is still active. You can still send messages.
 **BOT_END** | The last command that gets run. The connection may still be active. This command will always run if `BOT_INIT` ran successfully.
 
-For a list parsed IRC commands, see the source code for `.\Make-Alive.ps1`. The bot server will only translate the names of these commands; the original is left in `$Message.CommandCode`.
+For a list parsed IRC commands, see the source code for `.\Run-IrcBot.ps1`. The bot server will only translate the names of these commands; the original is left in `$Message.CommandCode`.
 
 You can also refer to these resources:
 
