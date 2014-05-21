@@ -76,9 +76,9 @@ param ($Message, $Bot)
 
 switch -regex ($Message.Text)
 {
-  "hi" { "hello" }
-  ":)" { "glad you're happy!" }
-  "bye" { "quit" }
+  "hi"   { "hello" }
+  ":)"   { "glad you're happy!" }
+  "bye"  { "/quit :bye guys" }
   default
   {
      # Do nothing?
@@ -86,7 +86,7 @@ switch -regex ($Message.Text)
 }
 ```
 
-Beware that the switch falls-through by default. You may prefix your output with `return` or use the `break` keyword afterward.
+Beware that the switch falls-through by default. You may prefix your output with `return` or use the `break` keyword at the end of your cases.
 
 ### Sending Multiple Messages
 
@@ -128,18 +128,23 @@ asdf
 
 asdf
 
+### Output Messages
+
+/pipe
+/...
+
+### Commands
+
+asdf
+
+
 FAQ
 ---
 
 #### Why didn't you use filters to parse the IRC input? (begin/process/end) IRC bots seem perfect for filters!
 
-Yes, they do! But I wanted the ability to reload the bot script at any time. If I had designed it for pipeline scripts, then I would be unable to update the script as the developer edits it. It is far more fun to interactively write your bot than to have to restart the bot server every time.
+Yes, they do! But I wanted the ability to reload the bot script at any time. If I had designed it for pipeline scripts, then I would be unable to update the script as the developer edits it. It is *wayyyyy* more fun to interactively write your bot than to have to restart the bot server every time.
 
 #### Why is your script using blocking I/O? Why is it single-threaded?
 
-Because it was easier :) And hitting `Ctrl+C` still worked. Since PowerShell is already single-threaded without tricks, I didn't want to overcomplicate things. It is also important not to take more than ~20 seconds to complete a command or your IRC bot may timeout if a PING is active. I do not yet priority sort incoming messages, so you may timeout while processing a long string of messages if you take too long. The bot server can probably get DOS'ed pretty easily so beware.
-
-
-
-
-
+Because it was easier :) And hitting `Ctrl+C` still worked. Since PowerShell is already single-threaded without tricks, I didn't want to overcomplicate things. It is also important not to take more than ~20 seconds to complete a command or your IRC bot may timeout if a PING is active. I don't priority sort incoming messages, so you may timeout while processing a long string of messages if you take too long. The bot server can probably get DOS'ed pretty easily so beware.
