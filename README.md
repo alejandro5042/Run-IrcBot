@@ -144,7 +144,7 @@ switch -regex ($Message.Text)
 }
 ```
 
-### Redirecting Sub-Commands Output
+### Redirecting Sub-Command Output
 
 It is useful to run regular PowerShell commands and redirect their output to IRC. Remember, any output written will be sent via IRC:
 
