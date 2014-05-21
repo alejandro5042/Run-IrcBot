@@ -1,7 +1,7 @@
 IRC Bots for PowerShell
 =======================
 
-`Make-Alive.ps1` is an easy way to make IRC bots using PowerShell. If your bot is script-based, your bot can be live-edited at runtime.
+`Make-Alive.ps1` is an easy way to make IRC bots using PowerShell. If your bot is script-based, your bot can be live-edited at runtime. Not designed for heavy usage.
 
 ```
 .\Make-Alive.ps1 name server[:port] chan1,chan2,chan3
@@ -248,21 +248,21 @@ $Message.SenderHost     | machine.com
 $Message.SenderName     | ~user
 $Message.SenderNickname | nick
 $Message.Target         | #channel
-$Message.Text           | throw
-$Message.Time           | 5/21/2014 3:20:32 PM | Received time.
+$Message.Text           | my message | Message text if it is a PRIVMSG. The text is stripped of any known formatting. If it is a `/me` message, a `/me` is prefixed.
+$Message.Time           | 5/21/2014 3:20:32 PM | Message receive time.
 
 ### The `$Bot` Object
 
 Name | Sample Value | Notes
 --- | --- | ---
 $Bot.BotScript        | C:\bots\awesomebot.ps1
-$Bot.Channels         | #channel
+$Bot.Channels         | #channel | List of chnanels passed in by the command-line.
 $Bot.Connection       | System.Net.Sockets.TcpClient | Do not mess with this!
-$Bot.CurrentError     | awesome
+$Bot.CurrentError     | | Diagnose an error thrown in the previous run of your bot. Set before running the `BOT_ERROR` command.
 $Bot.Description      | Bot description.
 $Bot.InactiveDelay    | 1000 | Milliseconds to wait between reads/writes when none have happened recently.
 $Bot.InteractiveDelay | 100 | Milliseconds to wait between reads/writes when active.
-$Bot.LastTick         | 5/21/2014 3:20:32 PM
+$Bot.LastTick         | 5/21/2014 3:20:32 PM | The last time we ticked. Only valid when TimerInterval is nonzero.
 $Bot.Name             | awesomebot | The original name of the bot; also the user name.
 $Bot.NetworkStream    | System.Net.Sockets.NetworkStream | Do not mess with this!
 $Bot.Nickname         | awesomebot2 | The nickname of the bot after initial connection and conflict resolution.
@@ -279,8 +279,14 @@ $Bot.Writer           | System.IO.StreamWriter | Do not mess with this!
 
 ### Output Messages
 
-/pipe
-/...
+Name | Action
+--- | ---
+/msg *target* *what* | Like the IRC client command, Sends *what* to *target*. *what* can also be a `/me`.
+/me *action* | Like the IRC client command, specifies an *action*.
+/pipe *value* | Outputs the string *value* to the PowerShell pipeline (not IRC).
+//*anything* | Escapes the `/` and outputs `/anything`.
+
+*anything else*
 
 ### Commands
 
