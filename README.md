@@ -275,7 +275,7 @@ $Message.**Time**           | 5/21/2014 3:20:32 PM | Message receive time.
 Name | Sample Value | Notes
 --- | --- | ---
 $Bot.**BotScript**        | C:\bots\awesomebot.ps1
-$Bot.**Channels**         | @(#channel, #channel2) | List of channels passed in by the command-line.
+$Bot.**Channels**         | {#channel, #channel2} | List of channels passed in by the command-line.
 $Bot.**Connection**       | System.Net.Sockets.TcpClient | Do not mess with this!
 $Bot.**CurrentError**     | | Diagnose an error thrown in the previous run of your bot. Set before running the `BOT_ERROR` command.
 $Bot.**Description**      | Bot description.
@@ -291,7 +291,7 @@ $Bot.**Running**          | True | Set to `$False` to quit immediately.
 $Bot.**ServerName**       | ircserver
 $Bot.**ServerPort**       | 6667
 $Bot.**StartTime**        | 5/21/2014 3:11:10 PM
-$Bot.**State**            | @{ }
+$Bot.**State**            | { }
 $Bot.**TextEncoding**     | System.Text.ASCIIEncoding | Text encoding used to communicate with server.
 $Bot.**TimerInterval**    | 0 | Milliseconds between `BOT_TICK` commands. Set to nonzero to activate the timer.
 $Bot.**Writer**           | System.IO.StreamWriter | Do not mess with this!
