@@ -281,7 +281,7 @@ $Bot.**CurrentError**     | | Diagnose an error thrown in the previous run of yo
 $Bot.**Description**      | Bot description.
 $Bot.**InactiveDelay**    | 1000 | Milliseconds to wait between reads/writes when none have happened recently.
 $Bot.**InteractiveDelay** | 100 | Milliseconds to wait between reads/writes when active.
-$Bot.**LastTick**         | 5/21/2014 3:20:32 PM | The last time we ticked. Only valid when TimerInterval is nonzero.
+$Bot.**LastTick**         | 5/21/2014 3:20:32 PM | The last time we sent a `BOT_TICK` if `$Bot.TimerInterval` is nonzero; otherwise, the current time.
 $Bot.**Name**             | awesomebot | The original name of the bot; also the user name.
 $Bot.**NetworkStream**    | System.Net.Sockets.NetworkStream | Do not mess with this!
 $Bot.**Nickname**         | awesomebot2 | The nickname of the bot after initial connection and conflict resolution.
@@ -293,7 +293,7 @@ $Bot.**ServerPort**       | 6667
 $Bot.**StartTime**        | 5/21/2014 3:11:10 PM
 $Bot.**State**            | {}
 $Bot.**TextEncoding**     | System.Text.ASCIIEncoding | Text encoding used to communicate with server.
-$Bot.**TimerInterval**    | 0 | Milliseconds between `BOT_TICK` commands. Set to nonzero to activate timer.
+$Bot.**TimerInterval**    | 0 | Milliseconds between `BOT_TICK` commands. Set to nonzero to activate the timer.
 $Bot.**Writer**           | System.IO.StreamWriter | Do not mess with this!
 
 ### Output Messages
