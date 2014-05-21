@@ -1,11 +1,13 @@
-# TODO: FIX EXAMPLES
-# Examples:
-#   .\Make-Alive.ps1 { if ($message.Text) { "/pipe " + $message.Text } } server '#boringwhatever'
-#   .\Make-Alive.ps1 { if ($message.Command -eq 'JOIN') { "hey!"; "/quit" } } niirc '#boringwhatever' lollers
-#   .\Make-Alive.ps1 { if ($message.Text -match "lol") { ":)" } } niirc '#boringwhatever' lollers
-#   .\Make-Alive.ps1 { if ($message.Text -match "change(?:set)?\s+(\d+)*") { Get-TfsChangeset $Matches[1] | select ChangesetId, CreationDate, Owner, Comment } } niirc '#boringwhatever' tfschangeset
-#   .\Make-Alive.ps1 { if ($message.Text -match "awesome") { "super awesome!" } } niirc '#boringwhatever' miniawesomebot
-#   .\Make-Alive.ps1 miniawesomebot niirc boringwhatever { if ($message.Text -match "awesome") { "super awesome!" } }
+<#  
+.SYNOPSIS  
+    IRC Bots for PowerShell.
+.DESCRIPTION  
+    `Make-Alive.ps1` is an easy way to make IRC bots using PowerShell. If your bot is script-based, your bot can be live-edited at runtime. Not designed for heavy usage.
+    
+    For documention, see: https://github.com/alejandro5042/ps-ircbot
+.LINK
+    https://github.com/alejandro5042/ps-ircbot
+#>
 
 [CmdLetBinding()]
 param
@@ -486,6 +488,11 @@ function InstinctBot ($message, $bot)
             Write-BotHost "Joined: $($message.Arguments[0])"
             break
         }
+        'RPL_ENDOFMOTD'
+        {
+            "/JOIN $($bot.Channels)"
+            break
+        }
         'PING'
         {
             "/PONG $($message.ArgumentString)"
@@ -501,11 +508,6 @@ function InstinctBot ($message, $bot)
             $bot.NicknameCounter += 1
             $bot.Nickname = ($message.Arguments[1] -replace "[\d]*$", "") + $bot.NicknameCounter
             "/NICK $($bot.Nickname)"
-            break
-        }
-        'RPL_ENDOFMOTD'
-        {
-            "/JOIN $($bot.Channels)"
             break
         }
         'ERROR'
@@ -568,24 +570,44 @@ filter Parse-OutgoingLine ($message, $bot)
     return "PRIVMSG $target :$line"
 }
 
-filter Write-Irc ($message, $bot)
+function Write-Irc ($message, $bot)
 {
-    foreach ($line in ([string]$_ -split '\n') | Parse-OutgoingLine $message $bot)
+    begin
     {
-        if ($line -match '^pipe(?:\s(.*))?')
+        $wroteToIrc = $false
+    }
+    process
+    {
+        foreach ($line in ([string]$_ -split '\n') | Parse-OutgoingLine $message $bot)
         {
-            $Matches[1]
+            if ($line -match '^pipe(?:\s(.*))?')
+            {
+                $Matches[1]
+            }
+            elseif ($bot.Writer)
+            {
+                if (!$wroteToIrc)
+                {
+                    Write-Verbose "--------------------------------------"
+                    $wroteToIrc = $true
+                }
+            
+                Write-Verbose "<< $line"
+                $bot.Writer.WriteLine($line)
+                $bot.Writer.Flush()
+                sleep -Milliseconds $bot.InteractiveDelay
+            }
+            else
+            {
+                # We don't have a writer and we didn't write to the pipe. Ignore the message.
+            }
         }
-        elseif ($bot.Writer)
+    }
+    end
+    {
+        if ($wroteToIrc)
         {
-            Write-Verbose "<< $line"
-            $bot.Writer.WriteLine($line)
-            $bot.Writer.Flush()
-            sleep -Milliseconds $bot.InteractiveDelay
-        }
-        else
-        {
-            # We don't have a writer and we didn't write to the pipe. Ignore the message.
+            Write-Verbose "--------------------------------------"
         }
     }
 }
@@ -734,20 +756,19 @@ function Main
         
         # Allow the bot to initialize the bot and/or massage parameters. Plus, if the script fails to compile or statically initialize (maybe because it doesn't like a parameter), we'll quit before we even connect.
         Run-Bot 'BOT_INIT' $bot -Fatal
-        
         Write-Verbose "Initialized Bot: $bot"
-        
-        $bot.Connection = New-Object Net.Sockets.TcpClient ($bot.ServerName, $bot.ServerPort)
-        $bot.NetworkStream = $bot.Connection.GetStream()
-        $bot.Reader = New-Object IO.StreamReader ($bot.NetworkStream, $bot.TextEncoding)
-        $bot.Writer = New-Object IO.StreamWriter ($bot.NetworkStream, $bot.TextEncoding)
-        
-        $bot.StartTime = [DateTime]::Now
-        $bot.Running = $true
-        Run-Bot 'BOT_CONNECTED' $bot
         
         try
         {
+            $bot.Connection = New-Object Net.Sockets.TcpClient ($bot.ServerName, $bot.ServerPort)
+            $bot.NetworkStream = $bot.Connection.GetStream()
+            $bot.Reader = New-Object IO.StreamReader ($bot.NetworkStream, $bot.TextEncoding)
+            $bot.Writer = New-Object IO.StreamWriter ($bot.NetworkStream, $bot.TextEncoding)
+            
+            $bot.StartTime = [DateTime]::Now
+            $bot.Running = $true
+            Run-Bot 'BOT_CONNECTED' $bot
+        
             $active = $false
             $bot.LastTick = [DateTime]::Now
             
@@ -798,7 +819,18 @@ function Main
         finally
         {
             $bot.Running = $false
-            Run-Bot 'BOT_DISCONNECTING' $bot
+            
+            try
+            {
+                if ($bot.Connection.Connected)
+                {
+                    Run-Bot 'BOT_DISCONNECTING' $bot
+                }
+            }
+            finally
+            {
+                Run-Bot 'BOT_END' $bot
+            }
         }
     }
     finally
