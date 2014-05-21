@@ -6,7 +6,7 @@
     
     For documention, see: https://github.com/alejandro5042/Run-IrcBot
 .LINK
-    https://github.com/alejandro5042/ps-ircbot
+    https://github.com/alejandro5042/Run-IrcBot
 #>
 
 [CmdLetBinding()]
