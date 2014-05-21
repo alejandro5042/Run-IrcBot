@@ -2,7 +2,7 @@
 .SYNOPSIS  
     IRC Bots for PowerShell.
 .DESCRIPTION  
-    `Run-IrcBot.ps1` is an easy way to make IRC bots using PowerShell. If your bot is script-based, your bot can be live-edited at runtime. Not designed for heavy usage.
+    `Run-IrcBot.ps1` is an easy way to make IRC bots using PowerShell. If your bot is script-based, your bot can be live-edited at runtime. Not designed for heavy usage. Likely requires PowerShell 4.0.
     
     For documention, see: https://github.com/alejandro5042/Run-IrcBot
 .LINK
