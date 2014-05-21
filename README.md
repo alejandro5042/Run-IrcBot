@@ -13,7 +13,7 @@ Command Line Usage
 ------------------
 
 Position | Option | Value
---- | :---: | ---
+:---: | --- | ---
 1 | **[-Name]** *name* | **Required.** The user and nickname of your bot. If -BotScript is not provided, then this is also the name of the script. If you pass a file, the user and nickname used is the basename of the file (no path, no extension).
 2 | **[-Server]** *server[:port]* | **Required.** The server to connect to with optional port. The default port is 6667 (defacto standard).
 3 | **[-Channel]** *chan1,chan2,...* | **Required.** A comma-delimited list of channels your bot will join on startup, without leading `#`.
@@ -24,8 +24,6 @@ Position | Option | Value
 
 How to Write a Bot
 ------------------
-
-### Overview
 
 Bots are written as PowerShell scripts. See the `examples/` directory for example bots.
 
@@ -69,7 +67,7 @@ Any output that begins with a `/` denotes an IRC command. Otherwise, your output
 
 Now type `bye` in your channel. Your bot should automatically disconnect.
 
-### Recommended Practices
+### Recommended Parsing Practices
 
 As your bot gets more complicated, you may want to use a [switch statement](http://technet.microsoft.com/en-us/library/ff730937.aspx):
 
@@ -111,9 +109,16 @@ switch -regex ($Message.Text)
 }
 ```
 
-### Running Sub-Commands
+### Redirecting Sub-Commands Output
 
+asdf
 
+### Command-Line Bots
+
+asdf
+
+Specification
+-------------
 
 ### The `$Message` Object
 
@@ -122,7 +127,6 @@ asdf
 ### The `$Bot` Object
 
 asdf
-
 
 FAQ
 ---
