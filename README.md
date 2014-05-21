@@ -25,7 +25,7 @@ Position | Option | Value
 How to Write a Bot
 ------------------
 
-To begin, here's your hello world bot. Any time someone says `hi` we will output `hello!`. Anything that is written to the output is stringified and sent via IRC.
+To begin, here's your hello world bot. Anytime someone says `hi` we will output `hello!`. Anything that is written to the output is stringified and sent via IRC.
 
 ```PowerShell
 param ($Message, $Bot)
@@ -165,7 +165,24 @@ As long as you use `Out-String`, you can get crazy and use `Format-Table` and `F
 
 ### Handling Commands
 
-asdf
+Besides messages, bots can respond to IRC commands. For instance, your bot can post a message anytime someone joins the channel.
+
+```PowerShell
+param ($Message, $Bot)
+
+switch ($Message.Command)
+{
+    "join"
+    {
+        if ($Message.SenderNickname -ne $Bot.Nickname) # Don't say hello to ourselves!
+        {
+            "hey there $($Message.SenderNickname), what's up?"
+        }
+    }
+}
+```
+
+A list of commands can be found later in the README.
 
 ### Stateful Bots
 
@@ -201,12 +218,17 @@ switch ($Message.Command)
 
 ### Command-Line Bots
 
-asdf
-
-You can also use the command-line option to pass arguments to your actual script.
+I thought it would be fun to experiment with command-line bots. You can specify a command-line bot with -BotScript (the fourth parameter). This simple bot tries to match any string that contains a TFS changeset number and replies with its details.
 
 ```PowerShell
-.\Make-Alive.ps1 awesomebot ircserver channel { .\awesome-bot.ps1 $Message $Bot -DoAwesomeStuff }
+.\Make-Alive.ps1 tfsbot ircserver channel { if ($Message.Text -match "change(?:set)?\s+(\d+)*") { Get-TfsChangeset $Matches[1] | select ChangesetId, CreationDate, Owner, Comment } }
+```
+
+You can also use the command-line option to use another script or pass arguments to your script.
+
+```PowerShell
+.\Make-Alive.ps1 awesomebot ircserver channel superbot
+.\Make-Alive.ps1 awesomebot ircserver channel { .\superbot.ps1 $Message $Bot -DoAwesomeStuff }
 ```
 
 Specification
