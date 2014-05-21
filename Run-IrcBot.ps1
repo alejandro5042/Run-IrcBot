@@ -2,9 +2,9 @@
 .SYNOPSIS  
     IRC Bots for PowerShell.
 .DESCRIPTION  
-    `Make-Alive.ps1` is an easy way to make IRC bots using PowerShell. If your bot is script-based, your bot can be live-edited at runtime. Not designed for heavy usage.
+    `Run-IrcBot.ps1` is an easy way to make IRC bots using PowerShell. If your bot is script-based, your bot can be live-edited at runtime. Not designed for heavy usage.
     
-    For documention, see: https://github.com/alejandro5042/ps-ircbot
+    For documention, see: https://github.com/alejandro5042/Run-IrcBot
 .LINK
     https://github.com/alejandro5042/ps-ircbot
 #>
@@ -35,7 +35,7 @@ param
 
 #################################################################
 
-$SOURCE_URL = "http://github.com/alejandro5042/ps-ircbot"
+$SOURCE_URL = "http://github.com/alejandro5042/Run-IrcBot"
 
 $BANNER = "PowerShell IRC Bot Framework -- $SOURCE_URL"
 
