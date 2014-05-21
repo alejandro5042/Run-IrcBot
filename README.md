@@ -9,6 +9,17 @@ IRC Bots for PowerShell
 
 Hit `Ctrl+C` to quit your bot.
 
+Installing
+----------
+
+Run this command to download a local copy:
+
+```PowerShell
+iwr 'https://raw.githubusercontent.com/alejandro5042/ps-ircbot/master/Make-Alive.ps1' -OutFile Make-Alive.ps1
+```
+
+You can also sync this repository using the `git` tools or the awesome GitHub Client ([Windows](https://windows.github.com/), [Mac](https://mac.github.com/)).
+
 Command Line Usage
 ------------------
 
