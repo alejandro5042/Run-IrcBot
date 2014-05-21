@@ -55,7 +55,7 @@ Save this as `hellobot.ps1`. To test your bot, connect to your IRC server and jo
 
 ### Live Editing
 
-You can edit your bot on the fly. You do not need to restart your server! If you make a mistake, the bot server will give you plenty of error message details for you to diagnose the problem.
+You can edit your bot on the fly. You do not need to restart your server! If you make a mistake, the bot server will give you plenty of error message details for you to diagnose the problem. Using the *-Verbose* will also show you all the messages your bot is receiving--very helpful during development!
 
 So let's add another condition:
 
@@ -76,7 +76,7 @@ Any output that begins with a `/` denotes an IRC command. Otherwise, your output
 
 Now type `bye` in your channel. Your bot should automatically disconnect.
 
-### Recommended Parsing Practices
+### Recommended Practices
 
 As your bot gets more complicated, you may want to use a [switch statement](http://technet.microsoft.com/en-us/library/ff730937.aspx):
 
@@ -250,6 +250,8 @@ You can also use the command-line option to use another script or pass arguments
 
 Specification
 -------------
+
+Using the *-Verbose* option will help you understand how these objects work and the behaviors of each of the commands.
 
 ### The `$Message` Object
 
