@@ -86,7 +86,7 @@ param ($Message, $Bot)
 switch -regex ($Message.Text)
 {
     "hi"   { "hello" }
-    "lol"   { "glad you're happy!" }
+    "lol"  { "glad you're happy!" }
     "bye"  { "/quit :bye guys" }
     default
     {
