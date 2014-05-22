@@ -372,7 +372,7 @@ FAQ
 
 #### Why didn't you use filters to parse the IRC input? (begin/process/end) IRC bots seem perfect for filters!
 
-Yes, they do! But I wanted the ability to reload the bot script at any time. If I had designed it for pipeline scripts, then I would be unable to update the script as the developer edits it. It is *wayyyyy* more fun to interactively write your bot than to have to restart the bot server every time.
+Yes, they do! But I wanted the ability to reload the bot script at any time. If I had designed it for pipeline scripts, then I would be unable to update the script as the developer edits it. It is *wayyyyy* more fun to interactively write your bot than to have to restart the bot server every time. Plus it results in smaller code and makes it easier to explain to new PowerShell users.
 
 #### Why is your script using blocking I/O? Why is it single-threaded?
 
