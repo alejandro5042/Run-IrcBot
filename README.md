@@ -305,7 +305,7 @@ Name | Action
 **/msg** *target* *what* | Like the IRC client command, Sends *what* to *target*. *what* can also be a `/me`.
 **/me** *action* | Like the IRC client command, specifies an *action*.
 **/pipe** *value* | Outputs the string *value* to the PowerShell pipeline (not IRC).
-**/cmd** *line* | Sends the `cmd` followed by `line`. Be sure to follow the IRC protocol.
+**/cmd** *line* | Sends the IRC command `cmd` with the argument string `line`. Be sure to follow the IRC protocol.
 **//** *anything* | Escapes the `/` and outputs `/ anything`.
 *anything else* | Sends a PRIVMSG to `$Message.Target`.
 
