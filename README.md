@@ -283,7 +283,7 @@ $Bot.**BotScript**        | C:\bots\awesomebot.ps1
 $Bot.**Channels**         | {#channel, #channel2} | List of channels passed in by the command-line. [related [#4](https://github.com/alejandro5042/Run-IrcBot/issues/4)]
 $Bot.**Connection**       | [Net.Sockets.TcpClient] | *Advanced users only!*
 $Bot.**CurrentError**     | [Management.Automation.ErrorRecord] | Diagnose an error thrown in the previous run of your bot. Set before running the `BOT_ERROR` or `BOT_FATAL_ERROR` command, cleared afterward. Typically `$null`.
-$Bot.**Description**      | *(Link to this page)* | Corresponds to the IRC `realname` in the `USER` command.
+$Bot.**Description**      | *(Link to this repository)* | Corresponds to the IRC `realname` in the `USER` command.
 $Bot.**InactiveDelay**    | 1000 | Milliseconds to wait between reads/writes when none have happened recently.
 $Bot.**InteractiveDelay** | 100 | Milliseconds to wait between reads/writes when active.
 $Bot.**LastTick**         | 5/21/2014 3:20:32 PM | The last time we sent a `BOT_TICK` if `$Bot.TimerInterval` is nonzero; otherwise, the current time.
