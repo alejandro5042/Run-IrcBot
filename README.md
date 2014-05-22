@@ -1,5 +1,4 @@
-IRC Bot Toolkit for PowerShell
-==============================
+# IRC Bot Toolkit for PowerShell
 
 `Run-IrcBot.ps1` is an easy way to make IRC bots using PowerShell. Requiring no dependencies, it handles the IRC protocol so you can concentrate on the cool stuff your bot will do. If your bot is script-based, it can be edited at runtime for maximum fun and iterative development. Great for internal IRC servers. Licensed under MIT.
 
@@ -9,8 +8,7 @@ IRC Bot Toolkit for PowerShell
 
 Hit `Ctrl+C` to quit your bot.
 
-Installing
-----------
+## Installing
 
 Run this command to download a local copy:
 
@@ -22,8 +20,7 @@ You can also use the `Download ZIP` or `Clone in Desktop` buttons on right-hand 
 
 You will need [PowerShell 4.0](http://www.microsoft.com/en-us/download/details.aspx?id=40855).
 
-Command Line Usage
-------------------
+## Command Line Usage
 
 Position | Option | Value
 :---: | --- | ---
@@ -252,12 +249,13 @@ You can also use the command-line option to use another script or pass arguments
 .\Run-IrcBot.ps1 awesomebot ircserver channel { .\superbot.ps1 $Message $Bot -DoAwesomeStuff }
 ```
 
-Specification
--------------
+## Specification
 
 Using the **-Verbose** option will help you understand how these objects work and the behaviors of each of the commands.
 
 ### The `$Message` Object
+
+A new instance is constructed with every message.
 
 Name | Sample Value | Notes
 --- | --- | ---
@@ -276,10 +274,12 @@ $Message.**Time**           | 5/21/2014 3:20:32 PM | Message receive time.
 
 ### The `$Bot` Object
 
+The same instance is used throughout the lifetime of your bot.
+
 Name | Sample Value | Notes
 --- | --- | ---
 $Bot.**BotScript**        | C:\bots\awesomebot.ps1
-$Bot.**Channels**         | {#channel, #channel2} | List of channels passed in by the command-line.
+$Bot.**Channels**         | {#channel, #channel2} | List of channels passed in by the command-line. [related [#4](https://github.com/alejandro5042/Run-IrcBot/issues/4)]
 $Bot.**Connection**       | System.Net.Sockets.TcpClient | *Advanced users only!*
 $Bot.**CurrentError**     | | Diagnose an error thrown in the previous run of your bot. Set before running the `BOT_ERROR` command.
 $Bot.**Description**      | Bot description.
@@ -306,7 +306,7 @@ Name | Action
 --- | ---
 **/msg** *target* *what* | Like the IRC client command, Sends *what* to *target*. *what* can also be a `/me`.
 **/me** *action* | Like the IRC client command, specifies an *action*.
-**/pipe** *value* | Outputs the string *value* to the PowerShell pipeline (not IRC).
+**/pipe** *value* | Outputs the string *value* to the PowerShell pipeline and not IRC. [related [#6](https://github.com/alejandro5042/Run-IrcBot/issues/6)]
 **/cmd** *line* | Sends the IRC command `cmd` with the argument string `line`. Be sure to follow the IRC protocol.
 **//** *anything* | Escapes the `/` and outputs `/ anything`.
 *anything else* | Sends a PRIVMSG to `$Message.Target`.
@@ -355,7 +355,7 @@ Signifies that we have authenticated successfully and that the welcome messages 
 
 #### PING
 
-The bot will respond to `PING` messages. It is also important not to take more than ~20 seconds to complete a command or your IRC bot may timeout if a `PING` is active. I don't priority sort incoming messages, so you may timeout while processing a long string of messages if you take too long. The bot server can probably get DOS'ed pretty easily so beware.
+The bot will respond to `PING` messages. It is also important not to take more than ~20 seconds to complete a command or your IRC bot may timeout if a `PING` is active. I don't priority sort incoming messages, so you may timeout while processing a long string of messages if you take too long [[#2](https://github.com/alejandro5042/Run-IrcBot/issues/2)]. The bot server can probably get DOS'ed pretty easily so beware.
 
 #### ERR_ERRONEUSNICKNAME (User Conflict)
 
@@ -369,13 +369,14 @@ The bot will add a number (`$Bot.NicknameCounter`) to the end of the name provid
 
 The bot will output the error message and quit, still running at least `BOT_END`.
 
-FAQ
----
+## FAQ
 
 #### Why didn't you use filters to parse the IRC input? (begin/process/end) IRC bots seem perfect for filters!
 
-Yes, they do! But I wanted the ability to reload the bot script at any time. If I had designed it for pipeline scripts, then I would be unable to update the script as the developer edits it. It is *wayyyyy* more fun to interactively write your bot than to have to restart the bot server every time. Plus it results in smaller code and makes it easier to explain to new PowerShell users.
+Yes, they do! But I wanted the ability to reload the bot script at any time. If I had designed it for pipeline scripts, then I would be unable to reload the bot as the developer edits it. It is *wayyyyy* more fun to interactively write your bot than to have to restart the bot server every time. Plus it results in smaller code and makes it easier to explain to new PowerShell users.
+
+In this project, I optimized for fun and flexibility over bullet-proof architecture. That is why there are only two flat objects (`$Message` and `$Bot`) that do most of the work. It's easy to reason with and I want the developer to care more about their bot than my toolkit. The mental overhead should be very small.
 
 #### Why is your script using blocking I/O? Why is it single-threaded?
 
-Because it was easier :) And hitting `Ctrl+C` still worked. Since PowerShell is already single-threaded without tricks, I didn't want to overcomplicate things.
+Because it was easier :) And hitting `Ctrl+C` still worked. Since PowerShell is already single-threaded without tricks, I didn't want to overcomplicate things. This may change in the future [[#3](https://github.com/alejandro5042/Run-IrcBot/issues/3)].
