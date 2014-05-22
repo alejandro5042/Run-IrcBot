@@ -278,6 +278,7 @@ The same instance is used throughout the lifetime of your bot.
 
 Name | Sample Value | Notes
 --- | --- | ---
+$Bot.**ApiVersion**        | 1 | Increments when breaking changes to the bot API have been introduced.
 $Bot.**BotScript**        | C:\bots\awesomebot.ps1
 $Bot.**Channels**         | {#channel, #channel2} | List of channels passed in by the command-line. [related [#4](https://github.com/alejandro5042/Run-IrcBot/issues/4)]
 $Bot.**Connection**       | System.Net.Sockets.TcpClient | *Advanced users only!*

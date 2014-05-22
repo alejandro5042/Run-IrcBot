@@ -43,7 +43,9 @@ $SOURCE_URL = "http://github.com/alejandro5042/Run-IrcBot"
 
 $BANNER = "IRC Bot Toolkit for PowerShell -- $SOURCE_URL"
 
-$DEFAULT_BOT_DESCRIPTION = "Based on -- $SOURCE_URL"
+$DEFAULT_DESCRIPTION = "Based on -- $SOURCE_URL"
+
+$API_VERSION = 1
 
 #################################################################
 
@@ -709,7 +711,9 @@ function Main
     {
         Write-Banner $BANNER
         
-        $bot = "" | select ServerName, ServerPort, Channels, TextEncoding, Name, State, BotScript, Connection, NetworkStream, Reader, Writer, InteractiveDelay, InactiveDelay, Running, CurrentError, TimerInterval, StartTime, LastTick, Nickname, Description, NicknameCounter
+        $bot = "" | select ServerName, ServerPort, Channels, TextEncoding, Name, State, BotScript, Connection, NetworkStream, Reader, Writer, InteractiveDelay, InactiveDelay, Running, CurrentError, TimerInterval, StartTime, LastTick, Nickname, Description, NicknameCounter, ApiVersion
+        
+        $bot.ApiVersion = $API_VERSION
         
         $bot.ServerName, $bot.ServerPort = $Server -split ":"
         if (!$bot.ServerPort)
@@ -728,7 +732,7 @@ function Main
         
         $bot.Nickname = $bot.Name
         $bot.NicknameCounter = 1
-        $bot.Description = $DEFAULT_BOT_DESCRIPTION
+        $bot.Description = $DEFAULT_DESCRIPTION
         $bot.Running = $false
         $bot.InactiveDelay = 1000
         $bot.InteractiveDelay = 100
