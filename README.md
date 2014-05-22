@@ -173,7 +173,7 @@ You will notice though that the output for the `cpudata` message looks different
 Get-Counter -Counter "\Processor(_Total)\*" | foreach CounterSamples | select Path, CookedValue | Out-String -Stream
 ```
 
-As long as you use Out-String, you can get crazy and use [Format-Table](http://technet.microsoft.com/en-us/library/hh849892.aspx), [Format-List](http://technet.microsoft.com/en-us/library/hh849957.aspx), and [Format-Wide](http://technet.microsoft.com/en-us/library/hh849918.aspx) cmdlets to make nicer output!
+As long as you use Out-String, you can get crazy and use the [Format-Table](http://technet.microsoft.com/en-us/library/hh849892.aspx), [Format-List](http://technet.microsoft.com/en-us/library/hh849957.aspx), and [Format-Wide](http://technet.microsoft.com/en-us/library/hh849918.aspx) cmdlets to make nicer output!
 
 ### Handling Commands
 
