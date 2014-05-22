@@ -326,7 +326,7 @@ Bot server specific commands:
 
 `$Message.Command` | Description
 --- | ---
-**BOT_INIT** | Run before connecting to the server. A good time to initialize variables, massage the `$Bot` variable, etc.
+**BOT_INIT** | Run before connecting to the server. A good time to initialize variables, massage the `$Bot` variable, etc. If your bot errors processing this command, we quit immediately.
 **BOT_CONNECTED** | Run after a successful connection to the server. Do not send messages at this point; instead wait for the end of the welcome message by command `RPL_ENDOFMOTD`.
 **BOT_TICK** | Run when a bot tick occurs, to the resolution of `$Bot.InactiveDelay` or longer if processing commands. The interval is specified by `$Bot.TimerInterval` and is only active when it is nonzero.
 **BOT_ERROR** | Run when a non-parse error occurs. See `$Bot.CurrentError`.
