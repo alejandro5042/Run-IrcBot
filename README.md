@@ -234,7 +234,7 @@ switch ($Message.Command)
 I thought it would be fun to experiment with command-line bots. You can specify a command-line bot with **-BotScript** (the default fourth parameter). This simple bot tries to match any string that contains a TFS changeset number and replies with its details.
 
 ```PowerShell
-.\Run-IrcBot.ps1 tfsbot ircserver channel { if ($Message.Text -match "change(?:set)?\s+(\d+)*") { Get-TfsChangeset $Matches[1] | select ChangesetId, CreationDate, Owner, Comment } }
+.\Run-IrcBot.ps1 tfsbot ircserver channel { if ($Message.Text -match "change(?:set)?\s+(\d+)") { Get-TfsChangeset $Matches[1] | select ChangesetId, CreationDate, Owner, Comment } }
 ```
 
 This bot redirects any messages to the pipeline. The `sls` command filters for messages containing `amazing`.
