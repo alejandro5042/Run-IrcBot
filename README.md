@@ -278,17 +278,17 @@ Name | Sample Value | Notes
 --- | --- | ---
 $Bot.**BotScript**        | C:\bots\awesomebot.ps1
 $Bot.**Channels**         | {#channel, #channel2} | List of channels passed in by the command-line.
-$Bot.**Connection**       | System.Net.Sockets.TcpClient | Do not mess with this!
+$Bot.**Connection**       | System.Net.Sockets.TcpClient | *Advanced users only!*
 $Bot.**CurrentError**     | | Diagnose an error thrown in the previous run of your bot. Set before running the `BOT_ERROR` command.
 $Bot.**Description**      | Bot description.
 $Bot.**InactiveDelay**    | 1000 | Milliseconds to wait between reads/writes when none have happened recently.
 $Bot.**InteractiveDelay** | 100 | Milliseconds to wait between reads/writes when active.
 $Bot.**LastTick**         | 5/21/2014 3:20:32 PM | The last time we sent a `BOT_TICK` if `$Bot.TimerInterval` is nonzero; otherwise, the current time.
 $Bot.**Name**             | awesomebot | The original name of the bot; also the user name.
-$Bot.**NetworkStream**    | System.Net.Sockets.NetworkStream | Do not mess with this!
+$Bot.**NetworkStream**    | System.Net.Sockets.NetworkStream | *Advanced users only!*
 $Bot.**Nickname**         | awesomebot2 | The nickname of the bot after initial connection and conflict resolution.
 $Bot.**NicknameCounter**  | 2 | How many times we attempted to find a nickname.
-$Bot.**Reader**           | System.IO.StreamReader | Do not mess with this!
+$Bot.**Reader**           | System.IO.StreamReader | *Advanced users only!*
 $Bot.**Running**          | $True | Set to `$False` to quit immediately.
 $Bot.**ServerName**       | ircserver
 $Bot.**ServerPort**       | 6667
@@ -296,7 +296,7 @@ $Bot.**StartTime**        | 5/21/2014 3:11:10 PM
 $Bot.**State**            | { }
 $Bot.**TextEncoding**     | System.Text.ASCIIEncoding | Text encoding used to communicate with server.
 $Bot.**TimerInterval**    | 0 | Milliseconds between `BOT_TICK` commands. Set to nonzero to activate the timer.
-$Bot.**Writer**           | System.IO.StreamWriter | Do not mess with this!
+$Bot.**Writer**           | System.IO.StreamWriter | *Advanced users only!*
 
 ### Output Messages
 
