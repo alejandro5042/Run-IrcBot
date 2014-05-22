@@ -28,7 +28,7 @@ Position | Option | Value
 2 | **[-Server]** *server[:port]* | **Required.** The server to connect to with optional port. The default port is 6667 (defacto standard).
 3 | **[-Channel]** *chan1,chan2,...* | **Required.** A comma-delimited list of channels your bot will join on startup, without leading `#`.
 4 | **[-BotScript]** *script* | An invokable script that represents your bot. This can be the name of the script or a script block. By default, the **-Name** is used.
-* | **-State** *object* | Initial state to pass into `$Bot.State`. The default state is an empty hash.
+* | **-State** *object* | Initial state to pass into `$Bot.State`. The default state is an empty hash table.
 * | **-Silent** | Disables default host output.
 * | **-Verbose** | Enables verbose output for the IRC bot.
 
@@ -54,7 +54,7 @@ Save this as `hellobot.ps1`. To test your bot, connect to your IRC server and jo
 
 ### Live Editing
 
-You can edit your bot on the fly. You do not need to restart your server! If you make a mistake, the bot server will give you plenty of error message details for you to diagnose the problem. Using the **-Verbose** will also show you all the messages your bot is receiving--very helpful during development!
+You can edit your bot on the fly. You do not need to restart your server! If you make a mistake, the bot server will give you plenty of error message details for you to diagnose the problem. Using the **-Verbose** option will also show you all the messages your bot is receiving&mdash;very helpful during development!
 
 So let's add another condition:
 
@@ -71,7 +71,7 @@ if ($Message.Text -match "bye")
 }
 ```
 
-Any output that begins with a `/` denotes an IRC command. Otherwise, your output is a reply). A double `//` escapes if you actually want to output that character as a message.
+Any output that begins with a `/` denotes an IRC command; otherwise, your output is a `PRIVMSG` reply. A double `//` escapes if you actually want to output that character as a message.
 
 Now type `bye` in your channel. Your bot should automatically disconnect.
 
@@ -86,7 +86,7 @@ switch -regex ($Message.Text)
 {
     "hi"   { "hello" }
     "lol"  { "glad you're happy!" }
-    "bye"  { "/quit :bye guys" }
+    "bye"  { "/quit cya!" }
     default
     {
         # Do nothing?
@@ -109,13 +109,13 @@ switch -regex ($Message.Text)
         {
             "hi"   { "hello" }
             "lol"  { "glad you're happy!" }
-            "bye"  { "/quit :bye guys" }
+            "bye"  { "/quit cya!" }
         }
     }
 }
 ```
 
-*Tip:* Want to be a little more dynamic? Use [`Get-Random`](http://technet.microsoft.com/en-us/library/hh849905.aspx):
+*Tip:* Want to be a little more dynamic? Use [Get-Random](http://technet.microsoft.com/en-us/library/hh849905.aspx):
 
 ```PowerShell
 # Outputs a random element from this array.
@@ -124,7 +124,7 @@ switch -regex ($Message.Text)
 
 ### Sending Multiple Messages
 
-Remember, anything you write to the output is sent via IRC. You send multiple messages by outputting multiple times. You can `printf` diagnose your bot by using [`Write-Host`](http://technet.microsoft.com/en-us/library/hh849877.aspx) to write to the command line. [`Write-Verbose`](http://technet.microsoft.com/en-us/library/hh849951.aspx) is also useful for dumping lots of debug information; use `-Verbose` to enable.
+Remember, anything you write to the output is sent via IRC. You send multiple messages by outputting multiple times. You can `printf` diagnose your bot by using [Write-Host](http://technet.microsoft.com/en-us/library/hh849877.aspx) to write to the command line. [Write-Verbose](http://technet.microsoft.com/en-us/library/hh849951.aspx) is also useful for dumping lots of debug information; use `-Verbose` to enable.
 
 ```PowerShell
 param ($Message, $Bot)
@@ -147,7 +147,7 @@ You can also send messages to the bot server pipeline. See `/pipe` later in the 
 
 ### Redirecting Sub-Command Output
 
-It is useful to run regular PowerShell commands and redirect their output to IRC. Remember, any output written will be sent via IRC:
+It is useful to run regular PowerShell commands for a reply. Remember, any output written from your script will be sent via IRC:
 
 ```PowerShell
 param ($Message, $Bot)
@@ -156,7 +156,7 @@ switch -regex ($Message.Text)
 {
     "cpuinfo"
     {
-        # Run the `cpuinfo` command. By default, it's output is our output :)
+        # Run the `cpuinfo` command. By default, its output is our output :)
         cpuinfo
     }
     "cpudata"
@@ -167,13 +167,13 @@ switch -regex ($Message.Text)
 }
 ```
 
-You will notice though that the output for the `cpudata` message looks different than it would if run on the command-line. That's because it's streaming a list of objects that we are stringifying individually. If we want it to look as it does on the command-line, use [`Out-String`](http://technet.microsoft.com/en-us/library/hh849952.aspx).
+You will notice though that the output for the `cpudata` message looks different than it would if run on the command-line. That's because it's streaming a list of objects that we are stringifying individually. If we want it to look as it does on the command-line, use [Out-String](http://technet.microsoft.com/en-us/library/hh849952.aspx).
 
 ```PowerShell
 Get-Counter -Counter "\Processor(_Total)\*" | foreach CounterSamples | select Path, CookedValue | Out-String -Stream
 ```
 
-As long as you use `Out-String`, you can get crazy and use `Format-Table` and `Format-List` to make nicer output too!
+As long as you use Out-String, you can get crazy and use [Format-Table](http://technet.microsoft.com/en-us/library/hh849892.aspx), [Format-List](http://technet.microsoft.com/en-us/library/hh849957.aspx), and [Format-Wide](http://technet.microsoft.com/en-us/library/hh849918.aspx) cmdlets to make nicer output!
 
 ### Handling Commands
 
@@ -209,7 +209,7 @@ param ($Message, $Bot)
 
 *Note:* You may notice that you see more messages than you expect. This is because commands are also messages.
 
-Since the default state is an empty hash, you can use it as a dynamic variable. By default, any unknown entries in a hash are `$null`. You can index the hash table as an object (`$hash.xyz`) or with square-brackets (`$hash['xyz']`).
+The default state is an empty hash table you can use it as a dynamic variable. By default, any unknown entries in a hash table are `$null`. You can index the hash table as an object (`$map.xyz`) or with square-brackets (`$map['xyz']`).
 
 If you wish, you can initialize the state on `BOT_INIT`.
 
@@ -261,15 +261,15 @@ Name | Sample Value | Notes
 --- | --- | ---
 $Message.**ArgumentString** | #channel :my message
 $Message.**Arguments**      | {#channel, my message}
-$Message.**Command**        | PRIVMSG | Attempted textual representation of `$Bot.CommandCode`.
-$Message.**CommandCode**    | PRIVMSG | The actual command in the IRC line.
+$Message.**Command**        | PRIVMSG | A friendly string representation of `$Bot.CommandCode`, otherwise just a copy of `$Message.CommandCode`.
+$Message.**CommandCode**    | PRIVMSG | The actual command in the IRC line. For the known numeric replies in the IRC RFC specs, I translate it into a string and store it in `$Bot.Command`. See the `Run-IrcBot.ps1` code for a listing of these translations.
 $Message.**Line**           | nick!~user@machine.com PRIVMSG #channel | The full line from the IRC server.
 $Message.**Prefix**         | nick!~user@machine.com
 $Message.**SenderHost**     | machine.com
 $Message.**SenderName**     | ~user
 $Message.**SenderNickname** | nick
 $Message.**Target**         | #channel
-$Message.**Text**           | my message | Message text if it is a PRIVMSG, otherwise `$null`. The text is stripped of any known formatting. If it is a `/me` message, a `/me` is prefixed.
+$Message.**Text**           | my message | Message text if it is a `PRIVMSG`, otherwise `$null`. The text is stripped of any known formatting. If it is a `/me` message, a `/me` is prefixed.
 $Message.**Time**           | 5/21/2014 3:20:32 PM | Message receive time.
 
 ### The `$Bot` Object
@@ -284,8 +284,8 @@ $Bot.**Channels**         | {#channel, #channel2} | List of channels passed in b
 $Bot.**Connection**       | [Net.Sockets.TcpClient] | *Advanced users only!*
 $Bot.**CurrentError**     | [Management.Automation.ErrorRecord] | Diagnose an error thrown in the previous run of your bot. Set before running the `BOT_ERROR` or `BOT_FATAL_ERROR` command, cleared afterward. Typically `$null`.
 $Bot.**Description**      | *(Link to this repository)* | Corresponds to the IRC `realname` in the `USER` command.
-$Bot.**InactiveDelay**    | 1000 | Milliseconds to wait between reads/writes when none have happened recently.
-$Bot.**InteractiveDelay** | 100 | Milliseconds to wait between reads/writes when active.
+$Bot.**InactiveDelay**    | 1000 | Polling interval in milliseconds between when no messages have been received recently.
+$Bot.**InteractiveDelay** | 100 | Milliseconds to wait between reads/writes when currently processing messages. Useful for not getting kicked out for spamming.
 $Bot.**LastTick**         | 5/21/2014 3:20:32 PM | The last time we sent a `BOT_TICK` if `$Bot.TimerInterval` is nonzero; otherwise, the current time.
 $Bot.**Name**             | awesomebot | The original name of the bot; also the user name.
 $Bot.**NetworkStream**    | [Net.Sockets.NetworkStream] | *Advanced users only!*
@@ -305,12 +305,12 @@ $Bot.**Writer**           | [IO.StreamWriter] | *Advanced users only!*
 
 Name | Action
 --- | ---
-**/msg** *target* *what* | Like the IRC client command, Sends *what* to *target*. *what* can also be a `/me`.
+**/msg** *target* *text* | Like the IRC client command, sends *text* to *target*. *text* can also be a `/me`.
 **/me** *action* | Like the IRC client command, specifies an *action*.
 **/pipe** *value* | Outputs the string *value* to the PowerShell pipeline and not IRC. [related [#6](https://github.com/alejandro5042/Run-IrcBot/issues/6)]
 **/cmd** *line* | Sends the IRC command `cmd` with the argument string `line`. Be sure to follow the IRC protocol.
 **//** *anything* | Escapes the `/` and outputs `/ anything`.
-*anything else* | Sends a PRIVMSG to `$Message.Target`.
+*anything else* | Sends a `PRIVMSG` to `$Message.Target`.
 
 *Note:* IRC command arguments are delimited by spaces. To send text, prefix with `:`. For example, the `/quit` message takes a single argument for the quit message. Without a leading `:`, it will take the last argument--typically the last word of your message. The right way to do a `/quit` message is like this:
 
@@ -334,7 +334,7 @@ Bot server specific commands:
 **BOT_DISCONNECTING** | Run right before disconnecting from the server *and* if the connection is still active. You can still send messages.
 **BOT_END** | The last command that gets run. The connection may still be active. This command will always run if `BOT_INIT` ran successfully.
 
-For a list parsed IRC commands, see the source code for `.\Run-IrcBot.ps1`. The bot server will only translate the names of these commands; the original is left in `$Message.CommandCode`.
+For a list of parsed IRC command replies, see the source code for `.\Run-IrcBot.ps1`. The bot server will only translate the names of these commands; the original is left in `$Message.CommandCode`.
 
 You can also refer to these resources:
 
