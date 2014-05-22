@@ -1,7 +1,7 @@
-IRC Bots for PowerShell
-=======================
+IRC Bot Toolkit for PowerShell
+==============================
 
-`Run-IrcBot.ps1` is an easy way to make IRC bots using PowerShell. If your bot is script-based, your bot can be live-edited at runtime. Not designed for heavy usage. Likely requires PowerShell 4.0.
+`Run-IrcBot.ps1` is an easy way to make IRC bots using PowerShell. Requiring no dependencies, it handles the IRC protocol so you can concentrate on the cool stuff your bot will do. If your bot is script-based, it can be edited at runtime for maximum fun and iterative development. Great for internal IRC servers. Licensed under MIT.
 
 <pre>
 <b>.\Run-IrcBot.ps1</b> name server[:port] chan1,chan2,chan3
@@ -19,6 +19,8 @@ Invoke-WebRequest 'https://raw.githubusercontent.com/alejandro5042/Run-IrcBot/ma
 ```
 
 You can also use the `Download ZIP` or `Clone in Desktop` buttons on right-hand side of the GitHub page. Feel free to clone this repository! Contributions are welcomed.
+
+You will need [PowerShell 4.0](http://www.microsoft.com/en-us/download/details.aspx?id=40855).
 
 Command Line Usage
 ------------------
