@@ -124,7 +124,7 @@ switch -regex ($Message.Text)
 
 ### Sending Multiple Messages
 
-Remember, anything you write to the output is sent via IRC. You send multiple messages by outputting multiple times. You can `printf` diagnose your bot by using [Write-Host](http://technet.microsoft.com/en-us/library/hh849877.aspx) to write to the command line. [Write-Verbose](http://technet.microsoft.com/en-us/library/hh849951.aspx) is also useful for dumping lots of debug information; use `-Verbose` to enable.
+Remember, anything you write to the output is sent via IRC. You send multiple messages by outputting multiple times. You can printf-style debug your bot by using [Write-Host](http://technet.microsoft.com/en-us/library/hh849877.aspx) to write to the command line. [Write-Verbose](http://technet.microsoft.com/en-us/library/hh849951.aspx) is also useful for dumping lots of debug information; use `-Verbose` to enable.
 
 ```PowerShell
 param ($Message, $Bot)
@@ -236,7 +236,7 @@ I thought it would be fun to experiment with command-line bots. You can specify 
 .\Run-IrcBot.ps1 tfsbot ircserver channel { if ($Message.Text -match "change(?:set)?\s+(\d+)") { Get-TfsChangeset $Matches[1] | select ChangesetId, CreationDate, Owner, Comment } }
 ```
 
-This bot redirects any messages to the pipeline. The `sls` command filters for messages containing `amazing`.
+This bot redirects any messages to the pipeline. The [sls](http://technet.microsoft.com/en-us/library/hh849903.aspx) command filters for messages containing `amazing`.
 
 ```PowerShell
 .\Run-IrcBot.ps1 monitor ircserver channel { if ($message.Text) { "/pipe " + $message.Text } } -Silent | sls amazing
