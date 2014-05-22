@@ -18,7 +18,7 @@ Run this command to download a local copy:
 Invoke-WebRequest 'https://raw.githubusercontent.com/alejandro5042/Run-IrcBot/master/Run-IrcBot.ps1' -OutFile Run-IrcBot.ps1
 ```
 
-You can also sync this repository using the `git` tools or the awesome GitHub Client ([Windows](https://windows.github.com/), [Mac](https://mac.github.com/)). Contributions are welcomed.
+You can also use the `Download ZIP` or `Clone in Desktop` buttons on right-hand side of the GitHub page. Feel free to clone this repository! Contributions are welcomed.
 
 Command Line Usage
 ------------------
