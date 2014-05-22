@@ -159,15 +159,15 @@ switch -regex ($Message.Text)
         # Run the `cpuinfo` command. By default, it's output is our output :)
         cpuinfo
     }
-    "cpuusage"
+    "cpudata"
     {
-        # Get some processor system counter info.
+        # Get processor system counter data.
         Get-Counter -Counter "\Processor(_Total)\*" | foreach CounterSamples | select Path, CookedValue
     }
 }
 ```
 
-You will notice though that the output for the `cpuusage` message looks different than it would if run on the command-line. That's because it's streaming a list of objects that we are stringifying individually. If we want it to look as it does on the command-line, use [Out-String](http://technet.microsoft.com/en-us/library/hh849952.aspx).
+You will notice though that the output for the `cpudata` message looks different than it would if run on the command-line. That's because it's streaming a list of objects that we are stringifying individually. If we want it to look as it does on the command-line, use [Out-String](http://technet.microsoft.com/en-us/library/hh849952.aspx).
 
 ```PowerShell
 Get-Counter -Counter "\Processor(_Total)\*" | foreach CounterSamples | select Path, CookedValue | Out-String -Stream
@@ -281,25 +281,25 @@ Name | Sample Value | Notes
 $Bot.**ApiVersion**        | 1 | Increments when breaking changes to the bot API have been introduced.
 $Bot.**BotScript**        | C:\bots\awesomebot.ps1
 $Bot.**Channels**         | {#channel, #channel2} | List of channels passed in by the command-line. [related [#4](https://github.com/alejandro5042/Run-IrcBot/issues/4)]
-$Bot.**Connection**       | System.Net.Sockets.TcpClient | *Advanced users only!*
-$Bot.**CurrentError**     | System.Management.Automation.ErrorRecord | Diagnose an error thrown in the previous run of your bot. Set before running the `BOT_ERROR` command, cleared afterward. Typically `$null`.
+$Bot.**Connection**       | [Net.Sockets.TcpClient] | *Advanced users only!*
+$Bot.**CurrentError**     | [Management.Automation.ErrorRecord] | Diagnose an error thrown in the previous run of your bot. Set before running the `BOT_ERROR` or `BOT_FATAL_ERROR` command, cleared afterward. Typically `$null`.
 $Bot.**Description**      | Corresponds to the IRC `realname` in the `USER` command.
 $Bot.**InactiveDelay**    | 1000 | Milliseconds to wait between reads/writes when none have happened recently.
 $Bot.**InteractiveDelay** | 100 | Milliseconds to wait between reads/writes when active.
 $Bot.**LastTick**         | 5/21/2014 3:20:32 PM | The last time we sent a `BOT_TICK` if `$Bot.TimerInterval` is nonzero; otherwise, the current time.
 $Bot.**Name**             | awesomebot | The original name of the bot; also the user name.
-$Bot.**NetworkStream**    | System.Net.Sockets.NetworkStream | *Advanced users only!*
+$Bot.**NetworkStream**    | [Net.Sockets.NetworkStream] | *Advanced users only!*
 $Bot.**Nickname**         | awesomebot2 | The nickname of the bot after initial connection and conflict resolution.
 $Bot.**NicknameCounter**  | 2 | How many times we attempted to find a nickname.
-$Bot.**Reader**           | System.IO.StreamReader | *Advanced users only!*
+$Bot.**Reader**           | [IO.StreamReader] | *Advanced users only!*
 $Bot.**Running**          | $True | Set to `$False` to quit immediately.
 $Bot.**ServerName**       | ircserver
 $Bot.**ServerPort**       | 6667
 $Bot.**StartTime**        | 5/21/2014 3:11:10 PM | Set once a connection has been established.
 $Bot.**State**            | { } | Scratch space for your bot that persists between calls to your script.
-$Bot.**TextEncoding**     | System.Text.ASCIIEncoding | Text encoding used to communicate with server.
+$Bot.**TextEncoding**     | [Text.ASCIIEncoding] | Text encoding used to communicate with server.
 $Bot.**TimerInterval**    | 0 | Milliseconds between `BOT_TICK` commands. Set to nonzero to activate the timer.
-$Bot.**Writer**           | System.IO.StreamWriter | *Advanced users only!*
+$Bot.**Writer**           | [IO.StreamWriter] | *Advanced users only!*
 
 ### Output Messages
 
