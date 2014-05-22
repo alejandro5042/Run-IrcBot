@@ -43,7 +43,7 @@ param
 
 $SOURCE_URL = "http://github.com/alejandro5042/Run-IrcBot"
 
-$BANNER = "PowerShell IRC Bot Framework -- $SOURCE_URL"
+$BANNER = "IRC Bot Toolkit for PowerShell -- $SOURCE_URL"
 
 $DEFAULT_BOT_DESCRIPTION = "Based on -- $SOURCE_URL"
 
