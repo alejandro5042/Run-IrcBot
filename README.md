@@ -4,7 +4,7 @@ IRC Bots for PowerShell
 `Run-IrcBot.ps1` is an easy way to make IRC bots using PowerShell. If your bot is script-based, your bot can be live-edited at runtime. Not designed for heavy usage. Likely requires PowerShell 4.0.
 
 ```
-.\Run-IrcBot.ps1 name server[:port] chan1,chan2,chan3
+<strong>.\Run-IrcBot.ps1</strong> name server[:port] chan1,chan2,chan3
 ```
 
 Hit `Ctrl+C` to quit your bot.
@@ -144,6 +144,8 @@ switch -regex ($Message.Text)
 }
 ```
 
+You can also send messages to the bot server pipeline. See `/pipe` later in the README.
+
 ### Redirecting Sub-Command Output
 
 It is useful to run regular PowerShell commands and redirect their output to IRC. Remember, any output written will be sent via IRC:
@@ -169,7 +171,7 @@ switch -regex ($Message.Text)
 You will notice though that the output for the `cpuusage` message looks different than it would if run on the command-line. That's because it's streaming a list of objects that we are stringifying individually. If we want it to look as it does on the command-line, use [Out-String](http://technet.microsoft.com/en-us/library/hh849952.aspx).
 
 ```PowerShell
-Get-Counter -Counter "\Processor(_Total)\*" | foreach CounterSamples | select Path, CookedValue | Out-String -Stream
+Get-Counter -Counter "\Processor(_Total)\*" | foreach CounterSamples | select Path, CookedValue | <strong>Out-String -Stream</strong>
 ```
 
 As long as you use `Out-String`, you can get crazy and use `Format-Table` and `Format-List` to make nicer output too!
