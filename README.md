@@ -349,7 +349,7 @@ Sends the `NICK` and `USER` commands.
 
 #### RPL_ENDOFMOTD
 
-Sends the `JOIN` command with the initial channel list provided.
+Signifies that we have authenticated successfully and that the welcome messages are done. Sends the `JOIN` command with the initial channel list provided.
 
 #### PING
 
