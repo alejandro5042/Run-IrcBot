@@ -289,7 +289,7 @@ $Bot.**NetworkStream**    | System.Net.Sockets.NetworkStream | Do not mess with 
 $Bot.**Nickname**         | awesomebot2 | The nickname of the bot after initial connection and conflict resolution.
 $Bot.**NicknameCounter**  | 2 | How many times we attempted to find a nickname.
 $Bot.**Reader**           | System.IO.StreamReader | Do not mess with this!
-$Bot.**Running**          | True | Set to `$False` to quit immediately.
+$Bot.**Running**          | $True | Set to `$False` to quit immediately.
 $Bot.**ServerName**       | ircserver
 $Bot.**ServerPort**       | 6667
 $Bot.**StartTime**        | 5/21/2014 3:11:10 PM
