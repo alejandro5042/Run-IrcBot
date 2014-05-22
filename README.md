@@ -255,7 +255,7 @@ Using the **-Verbose** option will help you understand how these objects work an
 
 ### The `$Message` Object
 
-A new instance is constructed with every message.
+A new instance is constructed with every message. Not all messages will populate the entire object. For example, if the line does not contain a prefix, then the prefix and the sender info will all be `$null`.
 
 Name | Sample Value | Notes
 --- | --- | ---
@@ -282,8 +282,8 @@ $Bot.**ApiVersion**        | 1 | Increments when breaking changes to the bot API
 $Bot.**BotScript**        | C:\bots\awesomebot.ps1
 $Bot.**Channels**         | {#channel, #channel2} | List of channels passed in by the command-line. [related [#4](https://github.com/alejandro5042/Run-IrcBot/issues/4)]
 $Bot.**Connection**       | System.Net.Sockets.TcpClient | *Advanced users only!*
-$Bot.**CurrentError**     | | Diagnose an error thrown in the previous run of your bot. Set before running the `BOT_ERROR` command.
-$Bot.**Description**      | Bot description.
+$Bot.**CurrentError**     | System.Management.Automation.ErrorRecord | Diagnose an error thrown in the previous run of your bot. Set before running the `BOT_ERROR` command, cleared afterward. Typically `$null`.
+$Bot.**Description**      | Corresponds to the IRC `realname` in the `USER` command.
 $Bot.**InactiveDelay**    | 1000 | Milliseconds to wait between reads/writes when none have happened recently.
 $Bot.**InteractiveDelay** | 100 | Milliseconds to wait between reads/writes when active.
 $Bot.**LastTick**         | 5/21/2014 3:20:32 PM | The last time we sent a `BOT_TICK` if `$Bot.TimerInterval` is nonzero; otherwise, the current time.
@@ -295,8 +295,8 @@ $Bot.**Reader**           | System.IO.StreamReader | *Advanced users only!*
 $Bot.**Running**          | $True | Set to `$False` to quit immediately.
 $Bot.**ServerName**       | ircserver
 $Bot.**ServerPort**       | 6667
-$Bot.**StartTime**        | 5/21/2014 3:11:10 PM
-$Bot.**State**            | { }
+$Bot.**StartTime**        | 5/21/2014 3:11:10 PM | Set once a connection has been established.
+$Bot.**State**            | { } | Scratch space for your bot that persists between calls to your script.
 $Bot.**TextEncoding**     | System.Text.ASCIIEncoding | Text encoding used to communicate with server.
 $Bot.**TimerInterval**    | 0 | Milliseconds between `BOT_TICK` commands. Set to nonzero to activate the timer.
 $Bot.**Writer**           | System.IO.StreamWriter | *Advanced users only!*
