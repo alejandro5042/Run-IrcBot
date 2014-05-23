@@ -18,7 +18,7 @@ Invoke-WebRequest 'https://raw.githubusercontent.com/alejandro5042/Run-IrcBot/ma
 
 You can also use the `Download ZIP` or `Clone in Desktop` buttons on right-hand side of the GitHub page. Feel free to clone this repository! Contributions are welcomed.
 
-You will need [PowerShell 4.0](http://www.microsoft.com/en-us/download/details.aspx?id=40855).
+You will need [PowerShell 4.0](http://www.microsoft.com/en-us/download/details.aspx?id=40855). Run `$Host.Version` to see what version you currently have.
 
 ## Command Line Usage
 
