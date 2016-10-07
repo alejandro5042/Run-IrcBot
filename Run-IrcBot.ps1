@@ -705,6 +705,105 @@ function Run-Bot ($line, $bot, [switch]$fatal)
     $bot.CurrentError = $null
 }
 
+function Handle-InputPipeStateMachine ($bot)
+{
+    # Keeps a named pipe open on the local computer.
+    # Other PowerShell cmdlets can write text to it using | Out-IrcBot.ps1
+    # and this reads it and sends it on to IRC through the $bot
+
+    # Is Asynchronous to make it non-blocking. Lifecycle is:
+    # 1. Create a named pipe.
+    #  . Initialize variables for one message
+    # 3. Async wait for connections
+    # 4. Check if a connection happened, if not stay here at 4.
+    # 5. Start an async Read().
+    # 6. if read finished, add text to array. If not, stay here at 6.
+    # 7. Check if Pipe Message is completed. If not, goto 5.
+    #  . All text read, pipe message complete. Write text to IRC. Goto 2.
+
+    # Init
+    if ($null -eq $Script:InputPipeState) {
+        $Script:InputPipeState = 1
+    }
+
+    # State machine
+    switch ($Script:InputPipeState)
+    {
+        1 {
+            $Script:InputPipe = new-object System.IO.Pipes.NamedPipeServerStream('ircbot_pipe',
+                                                                [System.IO.Pipes.PipeDirection]::InOut,
+                                                                1,  #? idk what this is for, just copypasted it
+                                                                [System.IO.Pipes.PipeTransmissionMode]::Message,
+                                                                [System.IO.Pipes.PipeOptions]::Asynchronous)
+
+            $Script:InputPipeMessageBuffer = New-Object byte[] 1024        #1Kb read buffer
+            $Script:InputPipeMessageBuilder = New-Object System.Text.StringBuilder
+
+            $Script:InputPipeState = 3
+        }
+
+        3 {
+            $Script:InputPipeConnectionWait = $Script:InputPipe.WaitForConnectionAsync() # wait for client
+
+            $Script:InputPipeState = 4
+        }
+
+        4 { 
+            if ($Script:InputPipeConnectionWait.IsCompleted) { # client connected
+                $Script:InputPipeState = 5
+            }
+        }
+
+        5 {
+            $Script:InputPipeReadWait = $Script:InputPipe.ReadAsync($Script:InputPipeMessageBuffer,        #begin reading from pipe into buffer
+                                                                    0,                            #store at buffer byte 0
+                                                                    $Script:InputPipeMessageBuffer.Length) #max num bytes to read
+            $Script:InputPipeState = 6
+        }
+
+        6 {
+            if ($Script:InputPipeReadWait.IsCompleted) { # background read finished
+                $NumBytesRead = $Script:InputPipeReadWait.Result
+                $MessageText = [System.Text.Encoding]::UTF8.GetString($Script:InputPipeMessageBuffer, 0, $NumBytesRead)
+                $null = $Script:InputPipeMessageBuilder.Append($MessageText)
+
+                $Script:InputPipeState = 7
+            }
+        }
+
+        7 {
+            if (-not $Script:InputPipe.IsMessageComplete)
+            {
+                $Script:InputPipeState = 5 # read again
+            } 
+            else
+            {
+                $line = $Script:InputPipeMessageBuilder.ToString()
+                $target = @($bot.Channels)[0]
+                $line = "PRIVMSG $target :$line"
+                       
+                if ($bot.Writer) {
+                    $bot.Writer.WriteLine($line)
+                    $bot.Writer.Flush()
+                }
+             
+                $Script:InputPipe.Close()
+                $Script:InputPipe.Dispose()    
+                $Script:InputPipeState = 1 # restart
+            }
+        }
+
+    }
+    
+}
+
+function Handle-InputPipe ($bot) {
+    # As the main loop has a delay in it, this runs quickly through the entire state machine each call
+    for ($i=0; $i -lt 7; $i++) {
+        Handle-InputPipeStateMachine $bot
+    }  
+}
+
 function Main
 {
     try
@@ -782,6 +881,8 @@ function Main
             
             while ($bot.Running)
             {
+                Handle-InputPipe $bot
+
                 if ($active)
                 {
                     sleep -Milliseconds $bot.InteractiveDelay
@@ -843,6 +944,7 @@ function Main
     }
     finally
     {
+
         if ($bot.Connection)
         {
             $bot.Connection.Close()
@@ -850,6 +952,13 @@ function Main
             
             Write-BotHost "Disconnected [$([DateTime]::Now.ToString())]`n"
         }
+
+        if ($Script:InputPipe)
+        {
+            $Script:InputPipe.Close()
+            $Script:InputPipe.Dispose()  
+        }
+
     }
 }
 
