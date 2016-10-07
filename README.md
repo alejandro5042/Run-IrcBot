@@ -250,6 +250,20 @@ You can also use the command-line option to use another script or pass arguments
 .\Run-IrcBot.ps1 awesomebot ircserver channel superbot
 .\Run-IrcBot.ps1 awesomebot ircserver channel { .\superbot.ps1 $Message $Bot -DoAwesomeStuff }
 ```
+### Sending text from PowerShell to IRC
+
+Use this to make the bot 'speak' in IRC, triggered by a local PowerShell script.
+e.g. once the bot is running, open a new PowerShell window and:
+
+```PowerShell
+echo 'Hello World!' | .\Out-IrcBot.ps1
+```
+The bot will say 'Hello World' into the first IRC channel it's joined to. You could use this to notify an IRC channel of the results of a command:
+
+```PowerShell
+Get-Content test.txt | .\Out-IrcBot.ps1
+```
+This works by Run-IrcBot.ps1 keeping a named pipe open, and Out-IrcBot.ps1 reading from the pipeline and writing to the named pipe.
 
 ## Specification
 
